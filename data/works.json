@@ -1,7 +1,7 @@
 [
   {
     "id": "work-c-001",
-    "title": "21世纪·可口可乐杯英语演讲比赛天津赛区决赛完美收官",
+    "title": "“21世纪·可口可乐杯”英语演讲比赛天津决赛【宣传文案】",
     "category": "cultural",
     "subcategory": "event",
     "description": "由中国日报社二十一世纪英语教育传媒主办，南开大学承办的第二十五届演讲比赛天津赛区决赛新闻报道。选手表现精彩，现场气氛热烈。",
@@ -26,7 +26,7 @@
   },
   {
     "id": "work-c-002",
-    "title": "七七四十九 | 大国外交硕果累，外院廿二更日新",
+    "title": "“七七四十九”南开大学外院公众号【宣传文案】",
     "category": "cultural",
     "subcategory": "event",
     "description": "通过中国外交70年的历程与南开外院22年发展的对应关系，深入阐述外院在培养外语人才中的使命与担当。",
@@ -50,25 +50,7 @@
   },
   {
     "id": "work-c-003",
-    "title": "字节跳动开放日·胡泳教授访谈提纲",
-    "category": "cultural",
-    "subcategory": "people",
-    "description": "北京大学胡泳教授在字节跳动开放日的深度访谈，探讨企业文化、智能媒介与社会的关系。",
-    "thumbnail": "images/works/字节跳动开放日·胡泳教授访谈提纲-封面.png",
-    "details": {
-      "background": "字节跳动开放日中创作者分享大会，邀请嘉宾从外部视角探讨企业文化。",
-      "content": "胡泳教授从互联网与智媒生态、抖音平台文化氛围、智能媒介与社会关系等多个维度展开深度对话，探讨企业文化对产业与社会发展的影响。",
-      "images": [
-        "images/details/work-c-003-detail-1.png"
-      ],
-      "type": "人物访谈提纲",
-      "scenes": "企业活动策划、媒体采访、高端论坛",
-      "date": "2025-07"
-    }
-  },
-  {
-    "id": "work-c-004",
-    "title": "我用行动来战\"疫\" | 责任担当，南开大学90后抗疫翻译志愿者故事",
+    "title": "我用行动来战\"疫\"|南开大学90后抗疫翻译志愿者故事【宣传文案】",
     "category": "cultural",
     "subcategory": "people",
     "description": "展现南开大学学生在疫情防控中发挥外语专长的故事，强调青年的责任担当与社会贡献。",
@@ -91,8 +73,8 @@
     }
   },
   {
-    "id": "work-c-005",
-    "title": "Inspiration 香氛礼盒产品卖点文案",
+    "id": "work-c-004",
+    "title": "Inspiration 香氛礼盒产品卖点【宣传文案】",
     "category": "cultural",
     "subcategory": "product",
     "description": "字节跳动企业文化产品的精品文案，突出产品品质、设计理念与使用体验。",
@@ -110,8 +92,8 @@
     }
   },
   {
-    "id": "work-c-006",
-    "title": "开放日上新，多系列9折!",
+    "id": "work-c-005",
+    "title": "字节跳动开放日·活动新品发布与营销推广【宣传文案】",
     "category": "cultural",
     "subcategory": "product",
     "description": "字节跳动开放日新品上市营销文案，包含系列产品介绍、优惠政策与行动指引。",
@@ -125,6 +107,24 @@
       "type": "营销活动文案",
       "scenes": "营销推广、活动宣传、产品发布",
       "date": "2025-09"
+    }
+  },
+  {
+    "id": "work-c-006",
+    "title": "字节跳动开放日·胡泳教授访谈【访谈提纲】",
+    "category": "cultural",
+    "subcategory": "people",
+    "description": "北京大学胡泳教授在字节跳动开放日的深度访谈，探讨企业文化、智能媒介与社会的关系。",
+    "thumbnail": "images/works/字节跳动开放日·胡泳教授访谈提纲-封面.png",
+    "details": {
+      "background": "字节跳动开放日中创作者分享大会，邀请嘉宾从外部视角探讨企业文化。",
+      "content": "胡泳教授从互联网与智媒生态、抖音平台文化氛围、智能媒介与社会关系等多个维度展开深度对话，探讨企业文化对产业与社会发展的影响。",
+      "images": [
+        "images/details/work-c-003-detail-1.png"
+      ],
+      "type": "人物访谈提纲",
+      "scenes": "企业活动策划、媒体采访、高端论坛",
+      "date": "2025-07"
     }
   },
   {
