@@ -41,10 +41,10 @@ function initNavbar() {
                 navMenu.classList.remove('active');
 
                 // 平滑滚动到目标位置
-                gsap.to(window, {
-                    duration: 0.8,
-                    scrollTo: { y: targetSection, offsetY: 70 },
-                    ease: 'power2.inOut'
+                const targetPosition = targetSection.offsetTop - 70;
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
                 });
             }
         });
@@ -119,12 +119,36 @@ function renderWorks(category) {
     // 创建卡片
     filteredWorks.forEach((work, index) => {
         const card = createWorkCard(work);
-        card.style.animationDelay = `${index * 0.1}s`;
+        // 使用 CSS 动画延迟而不是 GSAP
+        card.style.setProperty('--delay', `${index * 0.1}s`);
         worksGrid.appendChild(card);
     });
 
     // 添加懒加载
     lazyLoadImages();
+
+    // 为新渲染的卡片添加 GSAP 动画（使用防抖避免重复创建）
+    if (!prefersReducedMotion) {
+        // 清理之前的动画
+        const existingTriggers = ScrollTrigger.getAll().filter(trigger => 
+            trigger.vars.trigger === '.works' || trigger.vars.trigger?.classList?.contains('work-card')
+        );
+        existingTriggers.forEach(trigger => trigger.kill());
+
+        // 创建新动画
+        gsap.from('.work-card', {
+            scrollTrigger: {
+                trigger: '.works',
+                start: 'top 85%',
+                toggleActions: 'play none none none'
+            },
+            duration: 0.6,
+            opacity: 0,
+            y: 20,
+            stagger: 0.08,
+            ease: 'power2.out'
+        });
+    }
 }
 
 // 创建作品卡片 DOM
@@ -339,7 +363,7 @@ function showFormMessage(message, type) {
 // 5. 动效与GSAP配置
 // ==========================================
 
-// 注册 GSAP ScrollTrigger 插件
+// 注册 GSAP 插件
 gsap.registerPlugin(ScrollTrigger);
 
 // 性能优化：使用 reduce motion 检测
@@ -348,51 +372,28 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
 function initAnimations() {
     if (prefersReducedMotion) {
         // 如果用户偏好减少动画，跳过GSAP动画
-        document.querySelectorAll('.timeline-item, .advantage-card, .section-title').forEach(el => {
+        document.querySelectorAll('.section-title').forEach(el => {
             el.style.opacity = '1';
         });
         return;
     }
 
-    // 时间线项目入场动画
-    gsap.from('.timeline-item', {
-        scrollTrigger: {
-            trigger: '.timeline',
-            start: 'top 80%',
-            toggleActions: 'play none none reverse'
-        },
-        duration: 0.6,
-        opacity: 0,
-        x: -30,
-        stagger: 0.15,
-        ease: 'power2.out'
-    });
-
-    // 优势卡片动画
-    gsap.from('.advantage-card', {
-        scrollTrigger: {
-            trigger: '.advantages',
-            start: 'top 80%',
-            toggleActions: 'play none none reverse'
-        },
-        duration: 0.6,
-        opacity: 0,
-        y: 20,
-        stagger: 0.1,
-        ease: 'power2.out'
-    });
-
-    // 标题动画
-    gsap.from('.section-title', {
-        scrollTrigger: {
-            trigger: '.section-title',
-            start: 'top 90%',
-            toggleActions: 'play none none reverse'
-        },
-        duration: 0.8,
-        opacity: 0,
-        y: 20,
-        ease: 'power2.out'
+    // 标题动画 - 确保元素始终保持可见
+    gsap.utils.toArray('.section-title').forEach(element => {
+        // 确保初始状态可见
+        gsap.set(element, { opacity: 1 });
+        
+        gsap.from(element, {
+            scrollTrigger: {
+                trigger: element,
+                start: 'top 90%',
+                once: true  // 只播放一次，避免反复触发
+            },
+            duration: 0.8,
+            opacity: 0,
+            y: 20,
+            ease: 'power2.out'
+        });
     });
 }
 
@@ -439,7 +440,11 @@ function init() {
         loadWorks();
         initCategoryFilters();
         initContactForm();
-        initAnimations();
+        try {
+            initAnimations();
+        } catch (e) {
+            console.error('initAnimations error:', e);
+        }
         
         // 页面加载后更新导航高亮
         updateNavHighlight();
