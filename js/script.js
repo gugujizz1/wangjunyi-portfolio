@@ -280,8 +280,6 @@ function initContactForm() {
     if (!form) return;
 
     form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
         // 获取表单数据
         const formData = {
             name: document.getElementById('name').value.trim(),
@@ -293,6 +291,7 @@ function initContactForm() {
         // 验证
         const validation = validateForm(formData);
         if (!validation.valid) {
+            e.preventDefault();
             showFormMessage(validation.error, 'error');
             return;
         }
@@ -302,30 +301,6 @@ function initContactForm() {
         const originalText = submitBtn.textContent;
         submitBtn.disabled = true;
         submitBtn.textContent = '提交中...';
-
-        // 模拟提交（实际项目中应发送到后端）
-        try {
-            // 这里可以添加实际的表单提交逻辑
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // 成功
-            showFormMessage('感谢您的留言！我们会尽快回复您。', 'success');
-            form.reset();
-
-            // 恢复按钮
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
-
-            // 3秒后清除消息
-            setTimeout(() => {
-                document.getElementById('form-message').style.display = 'none';
-            }, 3000);
-
-        } catch (error) {
-            showFormMessage('提交失败，请重试。', 'error');
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
-        }
     });
 }
 
