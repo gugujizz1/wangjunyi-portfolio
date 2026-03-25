@@ -1,0 +1,16 @@
+# Node.js（本地开发服务器，不发布）
+node_modules/
+package-lock.json
+package.json
+server.js
+
+# 本地临时文件
+.DS_Store
+*.tar.gz
+*.py
+
+# 测试截图
+test-screenshots/
+
+# 上传的临时文件（图片通过 Supabase Storage 管理）
+images/uploads/

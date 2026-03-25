@@ -12,6 +12,7 @@ let currentCategory = 'all';
 let allWorks = [];
 let currentScrollSection = 'home';
 
+
 // ==========================================
 // 1. 导航栏功能
 // ==========================================
@@ -90,19 +91,34 @@ function updateNavHighlight() {
 // 2. 作品展示功能
 // ==========================================
 
-// 从 JSON 加载作品数据
+// 从 Supabase 加载作品数据
 async function loadWorks() {
-try {
-const response = await fetch('data/works.json');
-allWorks = await response.json();
-currentCategory = 'cultural';
-renderWorks('cultural');
-} catch (error) {
-console.error('加载作品数据失败:', error);
-// 备用：使用内联数据
-currentCategory = 'cultural';
-renderWorks('cultural');
-}
+    try {
+        const rows = await sbDB.getWorks();
+        if (rows && rows.length > 0) {
+            allWorks = rows.map(row => ({
+                id: row.id,
+                title: row.title,
+                category: row.category,
+                subcategory: row.subcategory || '',
+                description: row.description || '',
+                thumbnail: row.thumbnail || '',
+                details: row.details || {}
+            }));
+        } else {
+            // Supabase 无数据时降级到本地 JSON
+            const resp = await fetch('data/works.json');
+            allWorks = await resp.json();
+        }
+    } catch (error) {
+        console.error('加载作品数据失败:', error);
+        try {
+            const resp = await fetch('data/works.json');
+            allWorks = await resp.json();
+        } catch { allWorks = []; }
+    }
+    currentCategory = 'cultural';
+    renderWorks('cultural');
 }
 
 // 渲染作品卡片
@@ -189,12 +205,10 @@ function createWorkCard(work) {
 
 // 打开作品详情
 function openWorkDetail(work) {
-    // 保存当前作品到本地存储
-    localStorage.setItem('currentWork', JSON.stringify(work));
-    localStorage.setItem('currentCategory', currentCategory);
-    
-    // 跳转到详情页
-    window.location.href = 'work-detail.html';
+    sessionStorage.setItem('currentWorkId', work.id);
+    sessionStorage.setItem('currentCategory', currentCategory);
+    // 带 ?id= 参数支持直接分享链接
+    window.location.href = `work-detail.html?id=${encodeURIComponent(work.id)}`;
 }
 
 // 分类标签点击处理
@@ -405,12 +419,13 @@ function getSubcategoryName(subcategory) {
 // 7. 页面初始化
 // ==========================================
 
-function init() {
+async function init() {
     // 检查是否为详情页
     const isDetailPage = document.body.classList.contains('detail-page');
     
     if (!isDetailPage) {
-        // 首页初始化
+        // 必须先 await 站点数据写入，再启动动画，避免动画覆盖数据
+        await loadSiteData();
         initNavbar();
         loadWorks();
         initCategoryFilters();
@@ -430,27 +445,138 @@ function init() {
 }
 
 // ==========================================
+// 9. 从后台数据动态渲染 Hero & About
+// ==========================================
+
+async function loadSiteData() {
+    let site = null;
+    try {
+        site = await sbDB.getSiteData();
+        if (!site) {
+            const resp = await fetch('data/sitedata.json');
+            site = await resp.json();
+        }
+    } catch (e) {
+        console.error('[前端] loadSiteData 失败:', e);
+        try {
+            const resp = await fetch('data/sitedata.json');
+            site = await resp.json();
+        } catch { return; }
+    }
+    if (!site) return;
+    if (site.hero) applyHeroData(site.hero);
+    if (site.about) applyAboutData(site.about);
+}
+
+function applyHeroData(hero) {
+    const titleEl = document.querySelector('.hero-title');
+    const subtitleEl = document.querySelector('.hero-subtitle');
+    const descEl = document.querySelector('.hero-description');
+    const photoEl = document.querySelector('.hero-image img');
+    const btnPrimary = document.querySelector('.hero-buttons .btn.btn-primary');
+    const btnSecondary = document.querySelector('.hero-buttons .btn.btn-secondary');
+
+    if (titleEl && hero.title) titleEl.textContent = hero.title;
+    if (subtitleEl && hero.subtitle) subtitleEl.textContent = hero.subtitle;
+    if (descEl && hero.description) descEl.textContent = hero.description;
+    if (photoEl && hero.photo) photoEl.src = hero.photo;
+    if (btnPrimary && hero.btnPrimary) btnPrimary.textContent = hero.btnPrimary;
+    if (btnSecondary && hero.btnSecondary) btnSecondary.textContent = hero.btnSecondary;
+}
+
+function applyAboutData(about) {
+    // 照片
+    const photoEl = document.querySelector('.about-image img');
+    if (photoEl && about.photo) photoEl.src = about.photo;
+
+    // 个人简介
+    const introEl = document.querySelector('.about-intro p');
+    if (introEl && about.intro) introEl.textContent = about.intro;
+
+    // 技能
+    if (about.skills && about.skills.length > 0) {
+        const skillsGrid = document.querySelector('.skills-grid');
+        if (skillsGrid) {
+            skillsGrid.innerHTML = about.skills
+                .map(s => `<span class="skill-tag">${s}</span>`).join('');
+        }
+    }
+
+    // 教育经历
+    if (about.education && about.education.length > 0) {
+        const eduContainer = document.querySelector('.about-section:nth-child(2) .column-items');
+        if (eduContainer) {
+            eduContainer.innerHTML = about.education.map(edu => `
+                <div class="item">
+                    <h4>${edu.school}</h4>
+                    <p class="degree">${edu.degree}</p>
+                    <p class="time">${edu.time}</p>
+                </div>`).join('');
+        }
+    }
+
+    // 实习经历
+    if (about.internships && about.internships.length > 0) {
+        const internContainer = document.querySelector('.about-section:nth-child(3) .column-items');
+        if (internContainer) {
+            internContainer.innerHTML = about.internships.map(intern => `
+                <div class="item">
+                    <h4>${intern.company}</h4>
+                    <p class="position">${intern.position}</p>
+                    <p class="time">${intern.time}</p>
+                </div>`).join('');
+        }
+    }
+}
+
+// ==========================================
 // 8. 作品详情页功能
 // ==========================================
 
-function initDetailPage() {
+async function initDetailPage() {
+    // 返回按钮：优先返回上一页，如果无历史则跳到首页
     const backBtn = document.querySelector('.back-btn');
     if (backBtn) {
         backBtn.addEventListener('click', () => {
-            const category = localStorage.getItem('currentCategory') || 'all';
-            history.back();
+            if (document.referrer && document.referrer !== window.location.href) {
+                history.back();
+            } else {
+                window.location.href = 'index.html';
+            }
         });
     }
 
-    // 加载作品详情
-    const workData = localStorage.getItem('currentWork');
-    if (workData) {
-        const work = JSON.parse(workData);
-        displayWorkDetail(work);
+    const workId = sessionStorage.getItem('currentWorkId');
+    if (!workId) {
+        // 直接从 URL 参数读取（支持分享链接）
+        const urlId = new URLSearchParams(window.location.search).get('id');
+        if (!urlId) { window.location.href = 'index.html'; return; }
+        loadWorkById(urlId);
+        return;
     }
+    loadWorkById(workId);
+}
 
-    // 懒加载详情页图片
-    lazyLoadImages();
+async function loadWorkById(workId) {
+    try {
+        const rows = await sbFetch(`/rest/v1/works?id=eq.${encodeURIComponent(workId)}&limit=1`);
+        if (rows && rows.length > 0) {
+            const row = rows[0];
+            displayWorkDetail({
+                id: row.id,
+                title: row.title,
+                category: row.category,
+                subcategory: row.subcategory || '',
+                description: row.description || '',
+                thumbnail: row.thumbnail || '',
+                details: row.details || {}
+            });
+        } else {
+            console.error('[前端] 未找到作品:', workId);
+        }
+    } catch (e) {
+        console.error('[前端] 加载作品详情失败:', e);
+    }
 }
 
 function displayWorkDetail(work) {
@@ -479,35 +605,32 @@ function displayWorkDetail(work) {
     }
 
     if (contentEl) {
-        contentEl.innerHTML = `
-            <h3>创作背景</h3>
-            <p>${work.details.background}</p>
-            <h3 style="margin-top: var(--spacing-lg);">核心内容</h3>
-            <p>${work.details.content}</p>
-            <h3 style="margin-top: var(--spacing-lg);">应用场景</h3>
-            <p>${work.details.scenes}</p>
-            ${work.details.achievement ? `
-                <h3 style="margin-top: var(--spacing-lg);">成果成就</h3>
-                <p>${work.details.achievement}</p>
-            ` : ''}
-            ${work.details.links && work.details.links.length > 0 ? `
-                <div class="detail-links">
-                    ${work.details.links.map(link => `
-                        <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="detail-link">
-                            ${link.text}
-                        </a>
-                    `).join('')}
-                </div>
-            ` : ''}
-        `;
+        // 优先渲染富文本 HTML，降级时拼合旧字段
+        let bodyHtml = work.details.content_html || '';
+        if (!bodyHtml) {
+            const d = work.details;
+            if (d.background)  bodyHtml += `<h3>创作背景</h3><p>${d.background}</p>`;
+            if (d.content)     bodyHtml += `<h3>核心内容</h3><p>${d.content}</p>`;
+            if (d.scenes)      bodyHtml += `<h3>应用场景</h3><p>${d.scenes}</p>`;
+            if (d.achievement) bodyHtml += `<h3>成果成就</h3><p>${d.achievement}</p>`;
+        }
+        // 追加链接
+        if (work.details.links && work.details.links.length > 0) {
+            bodyHtml += `<div class="detail-links">${work.details.links.map(link =>
+                `<a href="${link.url}" target="_blank" rel="noopener noreferrer" class="detail-link">${link.text}</a>`
+            ).join('')}</div>`;
+        }
+        contentEl.innerHTML = bodyHtml;
     }
 
     if (imagesEl && work.details.images && work.details.images.length > 0) {
         imagesEl.innerHTML = work.details.images.map(img => `
             <div class="detail-image">
-                <img src="${img}" alt="详情图片" loading="lazy" data-src="${img}">
+                <img src="${img}" alt="详情图片">
             </div>
         `).join('');
+    } else if (imagesEl) {
+        imagesEl.innerHTML = '';
     }
 }
 
@@ -515,12 +638,25 @@ function displayWorkDetail(work) {
 // 启动应用
 // ==========================================
 
-// 确保 DOM 加载完成后再初始化
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
+// 确保 DOM 加载完成且 supabase.js 已加载后再初始化
+let _initiated = false;
+function safeInit() {
+    if (_initiated) return;
+    // 若 sbDB 还未定义（supabase.js 尚未加载），等待后重试
+    if (typeof sbDB === 'undefined') {
+        setTimeout(safeInit, 50);
+        return;
+    }
+    _initiated = true;
     init();
 }
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', safeInit);
+} else {
+    safeInit();
+}
+
 
 // 页面卸载时清理
 window.addEventListener('beforeunload', () => {

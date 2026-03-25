@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作品集后台管理 | WANG JUNYI</title>
+    <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.7/quill.snow.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<!-- 顶部栏 -->
+<header class="admin-header">
+    <div class="admin-header-left">
+        <button class="sidebar-toggle" id="sidebar-toggle" title="折叠侧边栏">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="admin-logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-text">作品集管理后台</span>
+        </div>
+    </div>
+    <div class="admin-header-right">
+        <a href="index.html" target="_blank" class="preview-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            预览前端
+        </a>
+        <button id="logout-btn" style="margin-left:8px;padding:6px 14px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#374151;" title="登出">
+            🔒 登出
+        </button>
+        <button class="export-btn" id="export-btn" title="导出所有数据为JSON文件">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            导出数据
+        </button>
+        <button class="import-btn" id="import-btn" title="从JSON文件导入数据">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            导入数据
+        </button>
+        <input type="file" id="import-file-input" accept=".json" style="display:none">
+        <button class="reset-btn" id="reset-btn" title="清除所有本地修改，恢复到原始数据">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.11"/></svg>
+            重置数据
+        </button>
+    </div>
+</header>
+
+<!-- 主体布局 -->
+<div class="admin-layout">
+
+    <!-- 侧边栏 -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <nav class="sidebar-nav">
+            <div class="nav-group">
+                <div class="nav-group-label">页面内容</div>
+                <a href="#" class="nav-item active" data-panel="hero">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                    Hero 首屏
+                </a>
+                <a href="#" class="nav-item" data-panel="about">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    个人介绍
+                </a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">作品管理</div>
+                <a href="#" class="nav-item" data-panel="works-cultural">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    文化宣传
+                    <span class="nav-badge" id="badge-cultural">0</span>
+                </a>
+                <a href="#" class="nav-item" data-panel="works-community">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    社区内容
+                    <span class="nav-badge" id="badge-community">0</span>
+                </a>
+                <a href="#" class="nav-item" data-panel="works-language">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    语言服务
+                    <span class="nav-badge" id="badge-language">0</span>
+                </a>
+                <a href="#" class="nav-item" data-panel="works-other">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+                    其他作品
+                    <span class="nav-badge" id="badge-other">0</span>
+                </a>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="save-status" id="save-status">
+                <span class="status-dot saved"></span>
+                <span class="status-text">数据已保存</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 内容区 -->
+    <main class="admin-main" id="admin-main">
+
+        <!-- ===== Hero 首屏面板 ===== -->
+        <div class="panel active" id="panel-hero">
+            <div class="panel-header">
+                <h2 class="panel-title">Hero 首屏</h2>
+                <p class="panel-desc">修改网站首屏展示的标题、描述和照片</p>
+            </div>
+            <div class="panel-body">
+                <div class="form-card">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">标题文字 <span class="label-hint">（"你好，我是"）</span></label>
+                            <input type="text" id="hero-title" class="form-input" placeholder="你好，我是">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">副标题 <span class="label-hint">（姓名 + emoji）</span></label>
+                            <input type="text" id="hero-subtitle" class="form-input" placeholder="王俊毅！👋">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">个人描述</label>
+                        <textarea id="hero-description" class="form-textarea" rows="3" placeholder="一句话介绍自己..."></textarea>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">按钮一文字</label>
+                            <input type="text" id="hero-btn-primary" class="form-input" placeholder="作品展示">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">按钮二文字</label>
+                            <input type="text" id="hero-btn-secondary" class="form-input" placeholder="关于我">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">个人照片</label>
+                        <div class="image-uploader" id="hero-photo-uploader">
+                            <div class="image-preview-wrap">
+                                <img id="hero-photo-preview" src="" alt="预览" class="image-preview hidden">
+                                <div class="image-placeholder" id="hero-photo-placeholder">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                    <p>点击选择图片</p>
+                                    <p class="hint">支持 JPG、PNG、WebP</p>
+                                </div>
+                            </div>
+                            <div class="image-uploader-actions">
+                                <input type="file" id="hero-photo-file" accept="image/*" style="display:none">
+                                <button class="btn-secondary" onclick="document.getElementById('hero-photo-file').click()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    上传本地图片
+                                </button>
+                                <span class="or-divider">或</span>
+                                <div class="url-input-wrap">
+                                    <input type="text" id="hero-photo-url" class="form-input" placeholder="输入图片路径或URL，如：images/xxx.jpg">
+                                    <button class="btn-ghost" id="hero-photo-url-btn">应用</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-primary" id="save-hero">保存 Hero 设置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 个人介绍面板 ===== -->
+        <div class="panel" id="panel-about">
+            <div class="panel-header">
+                <h2 class="panel-title">个人介绍</h2>
+                <p class="panel-desc">修改关于我区域的照片、文案、技能、教育经历和实习经历</p>
+            </div>
+            <div class="panel-body">
+                <!-- 照片 + 文案 -->
+                <div class="form-card">
+                    <h3 class="form-card-title">照片 & 个人简介</h3>
+                    <div class="form-group">
+                        <label class="form-label">个人照片</label>
+                        <div class="image-uploader">
+                            <div class="image-preview-wrap">
+                                <img id="about-photo-preview" src="" alt="预览" class="image-preview hidden">
+                                <div class="image-placeholder" id="about-photo-placeholder">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                    <p>点击选择图片</p>
+                                </div>
+                            </div>
+                            <div class="image-uploader-actions">
+                                <input type="file" id="about-photo-file" accept="image/*" style="display:none">
+                                <button class="btn-secondary" onclick="document.getElementById('about-photo-file').click()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    上传本地图片
+                                </button>
+                                <span class="or-divider">或</span>
+                                <div class="url-input-wrap">
+                                    <input type="text" id="about-photo-url" class="form-input" placeholder="输入图片路径或URL">
+                                    <button class="btn-ghost" id="about-photo-url-btn">应用</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">个人简介文案</label>
+                        <textarea id="about-intro" class="form-textarea" rows="4" placeholder="输入个人简介..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-primary" id="save-about-intro">保存照片 & 简介</button>
+                    </div>
+                </div>
+
+                <!-- 技能 -->
+                <div class="form-card">
+                    <h3 class="form-card-title">技能标签</h3>
+                    <div class="tags-editor" id="skills-editor">
+                        <div class="tags-list" id="skills-tags"></div>
+                        <div class="tags-add">
+                            <input type="text" id="skill-input" class="form-input" placeholder="输入技能名称，按回车添加">
+                            <button class="btn-secondary" id="add-skill-btn">添加</button>
+                        </div>
+                        <p class="hint-text">点击标签上的 × 可删除，拖拽可排序</p>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-primary" id="save-about-skills">保存技能</button>
+                    </div>
+                </div>
+
+                <!-- 教育经历 -->
+                <div class="form-card">
+                    <h3 class="form-card-title">教育经历</h3>
+                    <div id="education-list" class="experience-list"></div>
+                    <button class="btn-add-item" id="add-education-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        添加教育经历
+                    </button>
+                    <div class="form-actions">
+                        <button class="btn-primary" id="save-about-education">保存教育经历</button>
+                    </div>
+                </div>
+
+                <!-- 实习经历 -->
+                <div class="form-card">
+                    <h3 class="form-card-title">实习经历</h3>
+                    <div id="internship-list" class="experience-list"></div>
+                    <button class="btn-add-item" id="add-internship-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        添加实习经历
+                    </button>
+                    <div class="form-actions">
+                        <button class="btn-primary" id="save-about-internships">保存实习经历</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 作品列表面板（通用模板，JS动态渲染） ===== -->
+        <div class="panel" id="panel-works-cultural">
+            <div class="panel-header">
+                <h2 class="panel-title">文化宣传作品</h2>
+                <p class="panel-desc">管理文化宣传类作品的封面、标题、简介及详情</p>
+            </div>
+            <div class="panel-body">
+                <div class="works-manager">
+                    <div class="works-toolbar">
+                        <button class="btn-primary" data-add-work="cultural">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            新增作品
+                        </button>
+                    </div>
+                    <div class="works-list" id="works-list-cultural"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-works-community">
+            <div class="panel-header">
+                <h2 class="panel-title">社区内容作品</h2>
+                <p class="panel-desc">管理社区内容类作品的封面、标题、简介及详情</p>
+            </div>
+            <div class="panel-body">
+                <div class="works-manager">
+                    <div class="works-toolbar">
+                        <button class="btn-primary" data-add-work="community">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            新增作品
+                        </button>
+                    </div>
+                    <div class="works-list" id="works-list-community"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-works-language">
+            <div class="panel-header">
+                <h2 class="panel-title">语言服务作品</h2>
+                <p class="panel-desc">管理语言服务类作品的封面、标题、简介及详情</p>
+            </div>
+            <div class="panel-body">
+                <div class="works-manager">
+                    <div class="works-toolbar">
+                        <button class="btn-primary" data-add-work="language">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            新增作品
+                        </button>
+                    </div>
+                    <div class="works-list" id="works-list-language"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-works-other">
+            <div class="panel-header">
+                <h2 class="panel-title">其他作品</h2>
+                <p class="panel-desc">管理其他类作品的封面、标题、简介及详情</p>
+            </div>
+            <div class="panel-body">
+                <div class="works-manager">
+                    <div class="works-toolbar">
+                        <button class="btn-primary" data-add-work="other">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            新增作品
+                        </button>
+                    </div>
+                    <div class="works-list" id="works-list-other"></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- ===== 作品编辑弹窗 ===== -->
+<div class="modal-overlay" id="work-modal-overlay">
+    <div class="modal" id="work-modal">
+        <div class="modal-header">
+            <h3 class="modal-title" id="work-modal-title">编辑作品</h3>
+            <button class="modal-close" id="work-modal-close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="work-edit-id">
+            <input type="hidden" id="work-edit-category">
+
+            <!-- 基础信息 -->
+            <div class="modal-section">
+                <h4 class="modal-section-title">基础信息</h4>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">作品标题 <span class="required">*</span></label>
+                        <input type="text" id="work-title" class="form-input" placeholder="输入作品标题">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">子分类</label>
+                        <input type="text" id="work-subcategory" class="form-input" placeholder="如：event / product / people">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">作品简介（列表页显示）</label>
+                    <textarea id="work-description" class="form-textarea" rows="2" placeholder="一两句话描述作品..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">封面图片</label>
+                    <div class="image-uploader compact">
+                        <div class="image-preview-wrap small">
+                            <img id="work-thumbnail-preview" src="" alt="预览" class="image-preview hidden">
+                            <div class="image-placeholder small" id="work-thumbnail-placeholder">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                <p>封面图</p>
+                            </div>
+                        </div>
+                        <div class="image-uploader-actions">
+                            <input type="file" id="work-thumbnail-file" accept="image/*" style="display:none">
+                            <button class="btn-secondary small" id="work-thumbnail-upload-btn" type="button">上传图片</button>
+                            <span class="or-divider">或</span>
+                            <div class="url-input-wrap">
+                                <input type="text" id="work-thumbnail-url" class="form-input" placeholder="images/works/...">
+                                <button class="btn-ghost small" id="work-thumbnail-url-btn">应用</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 详情信息 -->
+            <div class="modal-section">
+                <h4 class="modal-section-title">详情页信息</h4>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">类型</label>
+                        <input type="text" id="work-type" class="form-input" placeholder="如：活动新闻稿、产品文案">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">创作时间</label>
+                        <input type="text" id="work-date" class="form-input" placeholder="如：2025-07">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">作品详情内容</label>
+                    <div id="work-content-editor" class="quill-editor-wrap"></div>
+                </div>
+            </div>
+
+            <!-- 详情配图 -->
+            <div class="modal-section">
+                <h4 class="modal-section-title">详情配图</h4>
+                <div id="work-detail-images-list" class="detail-images-editor"></div>
+                <div class="detail-image-add">
+                    <input type="file" id="work-detail-image-file" accept="image/*" style="display:none">
+                    <button class="btn-secondary" id="add-detail-image-file-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        上传配图
+                    </button>
+                    <span class="or-divider">或</span>
+                    <div class="url-input-wrap">
+                        <input type="text" id="work-detail-image-url" class="form-input" placeholder="输入图片路径">
+                        <button class="btn-ghost" id="add-detail-image-url-btn">添加</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 跳转链接 -->
+            <div class="modal-section">
+                <h4 class="modal-section-title">查看原文链接</h4>
+                <div id="work-links-list" class="links-editor"></div>
+                <button class="btn-add-item" id="add-link-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    添加链接
+                </button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-ghost" id="work-modal-cancel">取消</button>
+            <button class="btn-primary" id="work-modal-save">保存作品</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast 提示 -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

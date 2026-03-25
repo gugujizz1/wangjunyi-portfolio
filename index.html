@@ -220,16 +220,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
     <!-- 引入脚本 -->
+    <script src="js/supabase.js"></script>
     <script src="js/script.js"></script>
-    <script>
-        // 确保DOM完全加载后，调用init函数
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => init(), 100);
-            });
-        } else {
-            setTimeout(() => init(), 100);
-        }
-    </script>
 </body>
 </html>
