@@ -161,33 +161,23 @@ const sbDB = {
 // Storage 图片上传
 // ==========================================
 
-// 清理文件名：移除特殊字符，保留安全的字符
+// 生成 UUID v4
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+// 清理文件名：用 UUID 替换，保留原始扩展名
 function sanitizeFileName(filename) {
     // 提取扩展名
     const dotIndex = filename.lastIndexOf('.');
     const ext = dotIndex > -1 ? filename.substring(dotIndex).toLowerCase() : '';
-    const nameWithoutExt = dotIndex > -1 ? filename.substring(0, dotIndex) : filename;
     
-    // 第一步：只保留基本安全字符（英文、数字、中文、下划线、连字符）
-    let safeName = nameWithoutExt.replace(/[^\u4e00-\u9fa5a-zA-Z0-9_-]/g, '_');
-    
-    // 第二步：合并连续下划线
-    safeName = safeName.replace(/_+/g, '_');
-    
-    // 第三步：去掉首尾下划线和连字符
-    safeName = safeName.replace(/^[_-]+|[_-]+$/g, '');
-    
-    // 第四步：限制长度（Supabase 对文件名长度有限制）
-    if (safeName.length > 100) {
-        safeName = safeName.substring(0, 100);
-    }
-    
-    // 如果清理后为空，使用时间戳
-    if (!safeName) {
-        safeName = 'file_' + Date.now();
-    }
-    
-    return safeName + ext;
+    // 用 UUID 作为文件名，保留扩展名
+    return generateUUID() + ext;
 }
 
 const sbStorage = {
