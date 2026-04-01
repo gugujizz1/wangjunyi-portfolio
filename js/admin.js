@@ -328,12 +328,25 @@ function initHeroPanel() {
         const worksNum = document.getElementById('hero-stat-works').value.trim();
         const internshipsNum = document.getElementById('hero-stat-internships').value.trim();
         
-        const stats = [];
+        // 保留原有的 stats，只更新前两个（作品案例、实习经历）
+        const stats = h.stats ? [...h.stats] : [];
+        
+        // 更新或添加作品案例
         if (worksNum) {
-            stats.push({ num: worksNum, label: '作品案例' });
+            if (stats.length >= 1) {
+                stats[0] = { num: worksNum, label: '作品案例' };
+            } else {
+                stats.push({ num: worksNum, label: '作品案例' });
+            }
         }
+        
+        // 更新或添加实习经历
         if (internshipsNum) {
-            stats.push({ num: internshipsNum, label: '实习经历' });
+            if (stats.length >= 2) {
+                stats[1] = { num: internshipsNum, label: '实习经历' };
+            } else {
+                stats.push({ num: internshipsNum, label: '实习经历' });
+            }
         }
         
         siteData.hero = {

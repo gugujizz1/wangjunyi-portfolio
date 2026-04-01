@@ -161,18 +161,37 @@ const sbDB = {
 // Storage 图片上传
 // ==========================================
 
+// 清理文件名：移除特殊字符，保留安全的字符
+function sanitizeFileName(filename) {
+    // 提取扩展名
+    const dotIndex = filename.lastIndexOf('.');
+    const ext = dotIndex > -1 ? filename.substring(dotIndex) : '';
+    const nameWithoutExt = dotIndex > -1 ? filename.substring(0, dotIndex) : filename;
+    
+    // 保留中文、英文、数字、下划线、连字符，其他字符替换为下划线
+    const safeName = nameWithoutExt
+        .replace(/[^\u4e00-\u9fa5a-zA-Z0-9_-]/g, '_')
+        .replace(/_+/g, '_')  // 将连续的下划线合并为一个
+        .replace(/^_+|_+$/g, '');  // 去掉首尾下划线
+    
+    return safeName + ext;
+}
+
 const sbStorage = {
     // 上传文件，返回公开访问 URL
     async upload(file, savePath) {
         const token = sbCurrentToken();
         if (!token) throw new Error('请先登录后再上传图片');
 
-        // savePath 格式：images/works/cultural/work-c-001/封面.png
+        // 清理文件名
+        const cleanedFileName = sanitizeFileName(file.name);
+        // savePath 格式：images/works/cultural/work-c-001/[清理后的文件名]
+        const finalSavePath = `${savePath}/${cleanedFileName}`.replace(/\/\//g, '/');
+        
         // bucket 名和路径分别编码，用 / 连接
         const bucketEncoded = encodeURIComponent(STORAGE_BUCKET);
-        const filePathEncoded = savePath.split('/').map(encodeURIComponent).join('/');
+        const filePathEncoded = finalSavePath.split('/').map(encodeURIComponent).join('/');
         const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${bucketEncoded}/${filePathEncoded}`;
-
 
         const resp = await fetch(uploadUrl, {
             method: 'POST',
@@ -193,7 +212,7 @@ const sbStorage = {
             throw new Error(`${errMsg} (HTTP ${resp.status})`);
         }
 
-        // 返回公开 URL
+        // 返回公开 URL（使用清理后的路径）
         return `${SUPABASE_URL}/storage/v1/object/public/${bucketEncoded}/${filePathEncoded}`;
     },
 
