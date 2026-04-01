@@ -559,7 +559,6 @@ padding: 4px 0;
     display: flex;
     gap: var(--gap-lg);
     padding-top: var(--gap-md);
-    border-top: 1px solid var(--border);
     opacity: 0;
     animation: fadeUp 0.8s var(--ease) 0.72s forwards;
 }
@@ -1134,7 +1133,7 @@ border-top: 1px solid var(--border);
     grid-template-columns: 300px 1fr;
     gap: var(--gap-md);
     align-items: stretch; 
-    margin-bottom: var(--gap-lg);
+    margin-bottom: var(--gap-md);
     margin-top: var(--gap-md);
     padding-bottom: 0;
     border-bottom: none;
