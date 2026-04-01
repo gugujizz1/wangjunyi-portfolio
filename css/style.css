@@ -1135,6 +1135,7 @@ border-top: 1px solid var(--border);
     gap: var(--gap-md);
     align-items: stretch; 
     margin-bottom: var(--gap-lg);
+    margin-top: var(--gap-md);
     padding-bottom: 0;
     border-bottom: none;
 }
