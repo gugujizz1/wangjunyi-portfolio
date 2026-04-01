@@ -3,224 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="王俊毅个人作品集展示网站 - 文化宣传、社区内容、语言服务">
+    <meta name="description" content="王俊毅个人作品集 — 文化宣传 · 社区内容 · 语言服务">
     <meta name="author" content="WANG JUNYI">
-    <meta name="keywords" content="作品集，文化宣传，社区内容，语言服务，翻译，编译">
-    <title>王俊毅作品集 | 文化宣传 • 社区内容 • 语言服务</title>
-    
-    <!-- 引入样式表 -->
-    <link rel="stylesheet" href="css/style.css">
-    
-    <!-- 预连接到外部资源 -->
+    <meta name="keywords" content="王俊毅,作品集,文化宣传,社区内容,语言服务,翻译,编译">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="WANG JUNYI · Portfolio">
+    <meta property="og:description" content="文化宣传 · 社区内容 · 语言服务">
+    <meta property="og:type" content="website">
+
+    <title>WANG JUNYI · 王俊毅作品集</title>
+
+    <!-- Google Fonts 预连接 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    
-    <!-- 预加载 GSAP -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- 样式表 -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- GSAP 预加载 -->
     <link rel="prefetch" href="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js">
 </head>
 <body>
-    <!-- 导航栏 -->
-    <nav class="navbar">
+
+    <!-- ===== 加载屏幕 ===== -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>正在加载...</p>
+        </div>
+    </div>
+
+    <!-- ===== 导航栏 ===== -->
+    <nav class="navbar" id="navbar">
         <div class="navbar-container">
             <div class="logo">WANG JUNYI</div>
-            <button class="hamburger" id="hamburger" aria-label="菜单">
+
+            <button class="hamburger" id="hamburger" aria-label="菜单" aria-expanded="false">
                 <span></span>
                 <span></span>
                 <span></span>
             </button>
-            <ul class="nav-menu" id="nav-menu">
-                <li><a href="#home" class="nav-link active">首页</a></li>
-                <li><a href="#works" class="nav-link">作品展示</a></li>
-                <li><a href="#about" class="nav-link">关于我</a></li>
-                <li><a href="#contact" class="nav-link">联系方式</a></li>
+
+            <ul class="nav-menu" id="nav-menu" role="list">
+                <li><a href="#home"    class="nav-link active">首页</a></li>
+                <li><a href="#works"   class="nav-link">作品</a></li>
+                <li><a href="#about"   class="nav-link">关于</a></li>
+                <li><a href="#contact" class="nav-link">联系</a></li>
             </ul>
         </div>
     </nav>
 
-    <!-- Hero 英雄区 -->
+    <!-- ===== Hero 英雄区 ===== -->
     <section id="home" class="hero">
         <div class="hero-container">
+
+            <!-- 左侧内容 -->
             <div class="hero-content">
-                <h1 class="hero-title">你好，我是</h1>
-                <p class="hero-subtitle">王俊毅！👋</p>
-                <p class="hero-description">一个创作者、文案人、翻译者，用文字连接世界，用创意传递价值</p>
-                
+                <!-- 眉标 -->
+                <div class="hero-eyebrow">
+                    <span class="hero-eyebrow-line"></span>
+                    <span class="hero-eyebrow-text">Portfolio · 2026</span>
+                </div>
+
+                <!-- 主标题 -->
+                <h1 class="hero-title"></h1>
+                <p class="hero-subtitle"><em></em></p>
+
+                <!-- 分割线 -->
+                <div class="hero-divider"></div>
+
+                <!-- 描述 -->
+                <p class="hero-description"></p>
+
+                <!-- 按钮组 -->
                 <div class="hero-buttons">
-                    <a href="#works" class="btn btn-primary">作品展示</a>
-                    <a href="#about" class="btn btn-secondary">关于我</a>
+                    <a href="#works"   class="btn btn-primary"></a>
+                    <a href="#about"   class="btn btn-secondary"></a>
+                </div>
+
+                <!-- 统计数字装饰 -->
+                <div class="hero-stats">
+                    <div class="hero-stat-item">
+                        <span class="hero-stat-num">15<em>+</em></span>
+                        <span class="hero-stat-label">作品案例</span>
+                    </div>
+                    <div class="hero-stat-item">
+                        <span class="hero-stat-num">3<em>+</em></span>
+                        <span class="hero-stat-label">实习经历</span>
+                    </div>
+                    <div class="hero-stat-item">
+                        <span class="hero-stat-num">中英法</span>
+                        <span class="hero-stat-label">三语能力</span>
+                    </div>
                 </div>
             </div>
-            
+
+            <!-- 右侧图片 -->
             <div class="hero-image">
-                <img src="images/微信图片_20260308154851_55_15.jpg" alt="王俊毅" loading="lazy">
+                <div class="hero-image-frame">
+                    <img src=""
+                         alt="王俊毅"
+                         loading="eager">
+                    <div class="hero-image-caption">
+                        <span>Wang Junyi</span>
+                        <span>Beijing · 2026</span>
+                    </div>
+                </div>
             </div>
+
         </div>
+
     </section>
 
-    <!-- 作品展示区 -->
+    <!-- ===== 作品展示区 ===== -->
     <section id="works" class="works">
-        <div class="container">
-            <h2 class="section-title">作品展示</h2>
-            
-            <!-- 分类标签 -->
-            <div class="category-filters">
-                <button class="filter-btn active" data-filter="cultural">文化宣传</button>
-                <button class="filter-btn" data-filter="community">社区内容</button>
-                <button class="filter-btn" data-filter="language">语言服务</button>
-                <button class="filter-btn" data-filter="other">其他作品</button>
+
+        <!-- 区块头部 -->
+        <div class="works-header">
+            <div class="works-header-left">
+                <div class="section-label" data-reveal>
+                    <span class="section-label-line"></span>
+                    <span class="section-label-text">Selected Works</span>
+                </div>
+                <h2 class="section-title" data-reveal data-reveal-delay="1">作品展示</h2>
             </div>
 
-            <!-- 作品网格 -->
-            <div class="works-grid" id="works-grid">
-                <!-- 作品卡片将由JavaScript动态插入 -->
+            <!-- 右侧分类筛选 -->
+            <div class="works-header-right" data-reveal data-reveal-delay="2">
+                <div class="category-filters">
+                    <button class="filter-btn active" data-filter="cultural">文化宣传</button>
+                    <button class="filter-btn" data-filter="community">社区内容</button>
+                    <button class="filter-btn" data-filter="language">语言服务</button>
+                    <button class="filter-btn" data-filter="other">其他</button>
+                </div>
             </div>
         </div>
+
+        <!-- 作品网格 (JS 动态渲染) -->
+        <div class="works-grid" id="works-grid" aria-live="polite"></div>
+
     </section>
 
-    <!-- 关于我区 -->
+    <!-- ===== 关于我区 ===== -->
     <section id="about" class="about">
-        <div class="container">
-            <div class="about-content">
-                <!-- 上面一行：左边图片，右边"我是谁" -->
-                <div class="about-top">
-                    <!-- 左上角：图片 -->
-                    <div class="about-image">
-                        <img src="images/微信图片_20260308152043_50_15.jpg" alt="王俊毅">
-                    </div>
-                    
-                    <!-- 右上角：个人介绍 -->
-                    <div class="about-intro">
-                        <h3>个人介绍</h3>
-                        <p>王俊毅，中国传媒大学编辑出版学硕士，南开大学法语本科。具备强大的文字功底与语言能力，擅长文化宣传、社区内容运营与多语言翻译服务。致力于在文化传播、内容创新和语言服务领域探索创意解决方案。</p>
+        <div class="about-inner">
+
+            <!-- 区块标题 -->
+            <div class="section-label" data-reveal>
+                <span class="section-label-line"></span>
+                <span class="section-label-text">About Me</span>
+            </div>
+            <h2 class="section-title" data-reveal data-reveal-delay="1">关于我</h2>
+
+            <!-- 上部：图片 + 介绍 -->
+            <div class="about-top">
+<!-- 照片 -->
+<div class="about-image" data-reveal>
+<img src=""
+alt="王俊毅"
+loading="lazy">
+</div>
+
+                <!-- 文字介绍 + 技能 -->
+                <div class="about-intro" data-reveal data-reveal-delay="2">
+                    <p class="about-intro-quote"></p>
+
+                    <p class="about-intro-text"></p>
+
+                </div>
+            </div>
+
+            <!-- 下部：技能、教育、实习 三列 -->
+            <div class="about-bottom">
+
+                <!-- 技能 -->
+                <div class="about-section" data-reveal>
+                    <h3 class="about-section-title">技能</h3>
+                    <div class="skills-grid">
+                        <span class="skill-tag">文案写作</span>
+                        <span class="skill-tag">新闻编译</span>
+                        <span class="skill-tag">内容运营</span>
+                        <span class="skill-tag">翻译（中英法）</span>
+                        <span class="skill-tag">社区管理</span>
+                        <span class="skill-tag">活动策划</span>
+                        <span class="skill-tag">品牌文案</span>
+                        <span class="skill-tag">编辑出版</span>
                     </div>
                 </div>
-                
-                <!-- 下面一行：技能、教育经历、实习经历（三列） -->
-                <div class="about-bottom">
-                    <!-- 技能 -->
-                    <div class="about-section">
-                        <h3>技能</h3>
-                        <div class="skills-grid">
-                            <span class="skill-tag">文案写作</span>
-                            <span class="skill-tag">新闻编译</span>
-                            <span class="skill-tag">内容运营</span>
-                            <span class="skill-tag">翻译（中英法）</span>
-                            <span class="skill-tag">社区管理</span>
-                            <span class="skill-tag">活动策划</span>
-                            <span class="skill-tag">品牌文案</span>
-                            <span class="skill-tag">编辑出版</span>
+
+                <!-- 教育经历 -->
+                <div class="about-section" data-reveal data-reveal-delay="1">
+                    <h3 class="about-section-title">教育经历</h3>
+                    <div class="column-items">
+                        <div class="item">
+                            <h4>中国传媒大学</h4>
+                            <p class="degree">编辑出版学（硕士）</p>
+                            <p class="time">2023 — 2026</p>
                         </div>
-                    </div>
-                    
-                    <!-- 教育经历 -->
-                    <div class="about-section">
-                        <h3>教育经历</h3>
-                        <div class="column-items">
-                            <div class="item">
-                                <h4>中国传媒大学</h4>
-                                <p class="degree">编辑出版学（硕士）</p>
-                                <p class="time">2023 - 2026</p>
-                            </div>
-                            <div class="item">
-                                <h4>南开大学</h4>
-                                <p class="degree">法语（本科）</p>
-                                <p class="time">2019 - 2023</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 实习经历 -->
-                    <div class="about-section">
-                        <h3>实习经历</h3>
-                        <div class="column-items">
-                            <div class="item">
-                                <h4>字节跳动</h4>
-                                <p class="position">文化活动运营实习生</p>
-                                <p class="time">2025.07 - 2025.12</p>
-                            </div>
-                            <div class="item">
-                                <h4>NEWSBREAK</h4>
-                                <p class="position">内容运营实习生</p>
-                                <p class="time">2025.01 - 2025.04</p>
-                            </div>
-                            <div class="item">
-                                <h4>国际新闻研究所</h4>
-                                <p class="position">国际新闻编译实习生</p>
-                                <p class="time">2023.10 - 2024.09</p>
-                            </div>
+                        <div class="item">
+                            <h4>南开大学</h4>
+                            <p class="degree">法语（本科）</p>
+                            <p class="time">2019 — 2023</p>
                         </div>
                     </div>
                 </div>
+
+                <!-- 实习经历 -->
+                <div class="about-section" data-reveal data-reveal-delay="2">
+                    <h3 class="about-section-title">实习经历</h3>
+                    <div class="column-items">
+                        <div class="item">
+                            <h4>字节跳动</h4>
+                            <p class="position">文化活动运营实习生</p>
+                            <p class="time">2025.07 — 2025.12</p>
+                        </div>
+                        <div class="item">
+                            <h4>NEWSBREAK</h4>
+                            <p class="position">内容运营实习生</p>
+                            <p class="time">2025.01 — 2025.04</p>
+                        </div>
+                        <div class="item">
+                            <h4>国际新闻研究所</h4>
+                            <p class="position">国际新闻编译实习生</p>
+                            <p class="time">2023.10 — 2024.09</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>
 
-    <!-- 联系方式区 -->
+    <!-- ===== 联系方式区 ===== -->
     <section id="contact" class="contact">
-        <div class="container">
-            <h2 class="section-title">联系方式</h2>
-            
-            <!-- 联系信息 -->
-            <div class="contact-info">
-                <div class="info-item">
-                    <span class="label">邮箱</span>
-                    <a href="mailto:wangjy0815@163.com">wangjy0815@163.com</a>
-                </div>
-                <div class="info-item">
-                    <span class="label">电话</span>
-                    <a href="tel:+8615081725260">+86 1508 172 526</a>
-                </div>
+        <div class="contact-inner">
+
+            <div class="section-label" data-reveal>
+                <span class="section-label-line"></span>
+                <span class="section-label-text">Get in Touch</span>
             </div>
 
-            <!-- 留言表单 -->
-            <div class="contact-form">
-                <h3>给我留言</h3>
-                <form id="contact-form" class="form" action="https://formspree.io/f/mqeyagdj" method="POST">
-                    <!-- 第一行：姓名、邮箱、电话 -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="name">姓名 <span style="color: #f44336;">*</span></label>
-                            <input type="text" id="name" name="name" placeholder="请输入您的姓名" required>
+            <div class="contact-layout">
+
+                <!-- 左侧信息 -->
+                <div class="contact-info-panel" data-reveal>
+                    <h2 class="contact-info-headline">
+                        Let's<br><em style="font-style:italic;color:var(--gold)">Connect.</em>
+                    </h2>
+                    <p class="contact-info-desc">
+                        如果你想了解更多，欢迎通过以下方式与我联系。
+                        期待与你分享创意，共同讲好每一个故事。
+                    </p>
+
+                    <div class="contact-info-items">
+                        <div class="info-item">
+                            <div class="info-item-icon">✉</div>
+                            <div class="info-item-body">
+                                <span class="label">邮箱</span>
+                                <a href=""></a>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="email">邮箱 <span style="color: #f44336;">*</span></label>
-                            <input type="email" id="email" name="email" placeholder="请输入您的邮箱" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="phone">电话（可选）</label>
-                            <input type="tel" id="phone" name="phone" placeholder="请输入您的电话（非必填）">
+                        <div class="info-item">
+                            <div class="info-item-icon">📞</div>
+                            <div class="info-item-body">
+                                <span class="label">电话</span>
+                                <a href=""></a>
+                            </div>
                         </div>
                     </div>
-                    
-                    <!-- 第二行：留言内容 -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="message">留言内容 <span style="color: #f44336;">*</span></label>
-                            <textarea id="message" name="message" placeholder="请输入您的留言内容..." required></textarea>
+                </div>
+
+                <!-- 右侧表单 -->
+                <div class="contact-form" data-reveal data-reveal-delay="2">
+                    <h3>给我留言</h3>
+                    <form id="contact-form"
+                          action="https://formspree.io/f/xwvwqvgq"
+                          method="POST">
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name">姓名 <span style="color:#dc2626">*</span></label>
+                                <input type="text" id="name" name="name"
+                                       placeholder="您的姓名" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">邮箱 <span style="color:#dc2626">*</span></label>
+                                <input type="email" id="email" name="email"
+                                       placeholder="您的邮箱" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">电话（可选）</label>
+                                <input type="tel" id="phone" name="phone"
+                                       placeholder="您的电话">
+                            </div>
                         </div>
-                    </div>
-                    
-                    <button type="submit" class="submit-btn">提交</button>
-                </form>
-                <div id="form-message" class="form-message"></div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="message">留言内容 <span style="color:#dc2626">*</span></label>
+                                <textarea id="message" name="message"
+                                          placeholder="请输入您的留言…" required></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-btn">
+                            <span>发送留言</span>
+                        </button>
+                    </form>
+                    <div id="form-message" class="form-message"></div>
+                </div>
+
             </div>
         </div>
     </section>
 
-    <!-- 页脚 -->
+    <!-- ===== 页脚 ===== -->
     <footer class="footer">
-        <div class="container">
-            <p>&copy; 2026 WANG JUNYI. All rights reserved.</p>
-            <p>Last Updated: March 2026</p>
+        <div class="footer-inner">
+            <div class="footer-logo">WANG JUNYI</div>
+            <div class="footer-meta">
+            </div>
+            <div class="footer-line">
+                © 2026 All rights reserved · Last Updated Mar 2026
+            </div>
         </div>
     </footer>
 
-    <!-- 引入 GSAP 库 -->
+    <!-- ===== 脚本 ===== -->
+    <!-- GSAP -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
-    <!-- 引入脚本 -->
+    <!-- Supabase + 主逻辑 -->
     <script src="js/supabase.js"></script>
     <script src="js/script.js"></script>
+
+    <!-- Scroll Reveal 轻量实现 -->
+    <script>
+        (function() {
+            const revealEls = document.querySelectorAll('[data-reveal]');
+            if (!revealEls.length) return;
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('revealed');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+            revealEls.forEach(function(el) {
+                observer.observe(el);
+            });
+        })();
+    </script>
+
+    <!-- 导航栏滚动效果 + 进度条 -->
+    <script>
+        (function() {
+            var navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', function() {
+                var scrollY = window.scrollY;
+                // 滚动状态
+                if (scrollY > 40) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+                // 阅读进度条
+                var docH = document.documentElement.scrollHeight - window.innerHeight;
+                var progress = docH > 0 ? (scrollY / docH * 100).toFixed(1) + '%' : '0%';
+                navbar.style.setProperty('--scroll-progress', progress);
+            }, { passive: true });
+        })();
+    </script>
 </body>
 </html>

@@ -27,6 +27,7 @@ function initNavbar() {
     hamburger.addEventListener('click', () => {
         hamburger.classList.toggle('active');
         navMenu.classList.toggle('active');
+        hamburger.setAttribute('aria-expanded', navMenu.classList.contains('active'));
     });
 
     // 导航项点击
@@ -102,19 +103,27 @@ async function loadWorks() {
                 category: row.category,
                 subcategory: row.subcategory || '',
                 description: row.description || '',
-                thumbnail: row.thumbnail || '',
+                thumbnail: resolveLocalThumbnail(row.thumbnail || '', row.category, row.id, row.details),
                 details: row.details || {}
             }));
         } else {
             // Supabase 无数据时降级到本地 JSON
             const resp = await fetch('data/works.json');
-            allWorks = await resp.json();
+            const localWorks = await resp.json();
+            allWorks = localWorks.map(work => ({
+                ...work,
+                thumbnail: resolveLocalThumbnail(work.thumbnail || '', work.category, work.id, work.details)
+            }));
         }
     } catch (error) {
         console.error('加载作品数据失败:', error);
         try {
             const resp = await fetch('data/works.json');
-            allWorks = await resp.json();
+            const localWorks = await resp.json();
+            allWorks = localWorks.map(work => ({
+                ...work,
+                thumbnail: resolveLocalThumbnail(work.thumbnail || '', work.category, work.id, work.details)
+            }));
         } catch { allWorks = []; }
     }
     currentCategory = 'cultural';
@@ -134,9 +143,10 @@ function renderWorks(category) {
 
     // 创建卡片
     filteredWorks.forEach((work, index) => {
-        const card = createWorkCard(work);
+        const card = createWorkCard(work, index);
         // 使用 CSS 动画延迟而不是 GSAP
-        card.style.setProperty('--delay', `${index * 0.1}s`);
+        card.style.setProperty('--delay', `${index * 0.08}s`);
+        card.style.animationDelay = `${index * 0.08}s`;
         worksGrid.appendChild(card);
     });
 
@@ -168,20 +178,23 @@ function renderWorks(category) {
 }
 
 // 创建作品卡片 DOM
-function createWorkCard(work) {
+function createWorkCard(work, index) {
     const card = document.createElement('div');
     card.className = 'work-card';
     card.style.cursor = 'pointer';
 
     const categoryName = getCategoryName(work.category);
-    const subcategoryName = getSubcategoryName(work.subcategory);
+    const indexStr = String((index || 0) + 1).padStart(2, '0');
 
     card.innerHTML = `
+        <div class="work-card-index">${indexStr}</div>
         <div class="work-card-image">
-            <img src="${work.thumbnail}" alt="${work.title}" loading="lazy" data-src="${work.thumbnail}">
+            <img src="${work.thumbnail}" alt="${work.title}" loading="lazy">
         </div>
         <div class="work-card-content">
-            <span class="work-card-category">${categoryName}</span>
+            <div class="work-card-meta">
+                <span class="work-card-cat-badge">${categoryName}</span>
+            </div>
             <h3 class="work-card-title">${work.title}</h3>
             <p class="work-card-description">${work.description}</p>
             <div class="work-card-footer">
@@ -248,41 +261,13 @@ function initCategoryFilters() {
 // ==========================================
 
 function lazyLoadImages() {
-    const images = document.querySelectorAll('img[loading="lazy"]');
-
-    if ('IntersectionObserver' in window) {
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    const src = img.getAttribute('data-src') || img.src;
-
-                    // 创建新图片以验证加载
-                    const newImg = new Image();
-                    newImg.onload = () => {
-                        img.src = src;
-                        img.classList.remove('skeleton');
-                        observer.unobserve(img);
-                    };
-                    newImg.onerror = () => {
-                        img.classList.remove('skeleton');
-                        observer.unobserve(img);
-                    };
-                    newImg.src = src;
-                }
-            });
-        });
-
-        images.forEach(img => {
-            img.classList.add('skeleton');
-            imageObserver.observe(img);
-        });
-    } else {
-        // 不支持 IntersectionObserver 的浏览器
-        images.forEach(img => {
-            img.src = img.getAttribute('data-src') || img.src;
-        });
-    }
+    // 直接确保所有图片的 src 已经设置（卡片模板已写入 src，此处仅作兜底）
+    document.querySelectorAll('img[data-src]').forEach(img => {
+        const src = img.getAttribute('data-src');
+        if (src && img.src !== src && !img.src.endsWith(src)) {
+            img.src = src;
+        }
+    });
 }
 
 // ==========================================
@@ -294,6 +279,8 @@ function initContactForm() {
     if (!form) return;
 
     form.addEventListener('submit', async (e) => {
+        e.preventDefault(); // 阻止默认表单提交
+
         // 获取表单数据
         const formData = {
             name: document.getElementById('name').value.trim(),
@@ -305,16 +292,47 @@ function initContactForm() {
         // 验证
         const validation = validateForm(formData);
         if (!validation.valid) {
-            e.preventDefault();
             showFormMessage(validation.error, 'error');
             return;
         }
 
-        // 禁用按钮
+        // 禁用按钮并显示发送中
         const submitBtn = form.querySelector('.submit-btn');
-        const originalText = submitBtn.textContent;
+        const originalText = submitBtn.innerHTML;
         submitBtn.disabled = true;
-        submitBtn.textContent = '提交中...';
+        submitBtn.innerHTML = '<span>发送中…</span>';
+        
+        try {
+            // 通过 AJAX 发送到 Formspree
+            const response = await fetch('https://formspree.io/f/xwvwqvgq', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                // 发送成功
+                showFormMessage('✓ 留言已发送成功，感谢您的留言！', 'success');
+                form.reset();
+                submitBtn.innerHTML = '<span>发送成功</span>';
+                
+                // 3秒后恢复按钮
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    showFormMessage('', '');
+                }, 3000);
+            } else {
+                throw new Error('发送失败');
+            }
+        } catch (error) {
+            console.error('表单提交错误:', error);
+            showFormMessage('✗ 发送失败，请稍后重试', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
     });
 }
 
@@ -344,8 +362,13 @@ function isValidEmail(email) {
 
 function showFormMessage(message, type) {
     const messageEl = document.getElementById('form-message');
-    messageEl.textContent = message;
-    messageEl.className = `form-message ${type}`;
+    if (message) {
+        messageEl.textContent = message;
+        messageEl.className = `form-message ${type}`;
+    } else {
+        messageEl.textContent = '';
+        messageEl.className = 'form-message';
+    }
 }
 
 // ==========================================
@@ -389,6 +412,23 @@ function initAnimations() {
 // ==========================================
 // 6. 工具函数
 // ==========================================
+
+
+// Supabase 数据库里 thumbnail 是扁平路径 "images/works/文件名"
+// 本地文件实际在 "images/works/category/id/文件名"，此函数做路径补全
+function resolveLocalThumbnail(thumbnail, category, id, details) {
+    if (!thumbnail) return '';
+    // 已是完整 http URL，直接用（未来上传到 Storage 后自动生效）
+    if (thumbnail.startsWith('http')) return thumbnail;
+    const prefix = 'images/works/';
+    if (!thumbnail.startsWith(prefix)) return thumbnail;
+    const rest = thumbnail.slice(prefix.length);
+    // 路径已包含 category/id 两级，说明已经是正确格式
+    if (rest.split('/').length >= 3) return thumbnail;
+    // 只有纯文件名，补全为 images/works/category/id/文件名
+    const filename = rest.split('/').pop();
+    return `${prefix}${category}/${id}/${filename}`;
+}
 
 function getCategoryName(category) {
     const categoryMap = {
@@ -440,7 +480,22 @@ async function init() {
         updateNavHighlight();
     } else {
         // 详情页初始化
-        initDetailPage();
+        await initDetailPage();
+    }
+    
+    // 所有内容加载完成后隐藏加载屏幕
+    hideLoadingScreen();
+}
+
+// 隐藏加载屏幕
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+        loadingScreen.classList.add('hidden');
+        // 可选：一段时间后从 DOM 中移除
+        setTimeout(() => {
+            loadingScreen.remove();
+        }, 1000);
     }
 }
 
@@ -453,8 +508,14 @@ async function loadSiteData() {
     try {
         site = await sbDB.getSiteData();
         if (!site) {
-            const resp = await fetch('data/sitedata.json');
-            site = await resp.json();
+            // Supabase 中没有数据时的降级方案
+            try {
+                const resp = await fetch('data/sitedata.json');
+                site = await resp.json();
+            } catch {
+                console.warn('[前端] 本地 sitedata.json 不存在');
+                return;
+            }
         }
     } catch (e) {
         console.error('[前端] loadSiteData 失败:', e);
@@ -466,6 +527,7 @@ async function loadSiteData() {
     if (!site) return;
     if (site.hero) applyHeroData(site.hero);
     if (site.about) applyAboutData(site.about);
+    if (site.contact) applyContactData(site.contact);
 }
 
 function applyHeroData(hero) {
@@ -482,6 +544,21 @@ function applyHeroData(hero) {
     if (photoEl && hero.photo) photoEl.src = hero.photo;
     if (btnPrimary && hero.btnPrimary) btnPrimary.textContent = hero.btnPrimary;
     if (btnSecondary && hero.btnSecondary) btnSecondary.textContent = hero.btnSecondary;
+    
+    // 统计数据
+    if (hero.stats && hero.stats.length > 0) {
+        const statsContainer = document.querySelector('.hero-stats');
+        if (statsContainer) {
+            statsContainer.innerHTML = hero.stats
+                .map(stat => `
+                    <div class="hero-stat-item">
+                        <span class="hero-stat-num">${stat.num}<em>+</em></span>
+                        <span class="hero-stat-label">${stat.label}</span>
+                    </div>
+                `)
+                .join('');
+        }
+    }
 }
 
 function applyAboutData(about) {
@@ -489,8 +566,12 @@ function applyAboutData(about) {
     const photoEl = document.querySelector('.about-image img');
     if (photoEl && about.photo) photoEl.src = about.photo;
 
-    // 个人简介
-    const introEl = document.querySelector('.about-intro p');
+    // 引言大字（.about-intro-quote）
+    const quoteEl = document.querySelector('.about-intro-quote');
+    if (quoteEl && about.quote) quoteEl.innerHTML = about.quote.replace(/\n/g, '<br>');
+
+    // 正文小字（.about-intro-text）
+    const introEl = document.querySelector('.about-intro-text');
     if (introEl && about.intro) introEl.textContent = about.intro;
 
     // 技能
@@ -502,9 +583,9 @@ function applyAboutData(about) {
         }
     }
 
-    // 教育经历
+    // 教育经历（about-exp-row 内第1个 about-section）
     if (about.education && about.education.length > 0) {
-        const eduContainer = document.querySelector('.about-section:nth-child(2) .column-items');
+        const eduContainer = document.querySelector('.about-exp-row .about-section:nth-child(1) .column-items');
         if (eduContainer) {
             eduContainer.innerHTML = about.education.map(edu => `
                 <div class="item">
@@ -515,9 +596,9 @@ function applyAboutData(about) {
         }
     }
 
-    // 实习经历
+    // 实习经历（about-exp-row 内第2个 about-section）
     if (about.internships && about.internships.length > 0) {
-        const internContainer = document.querySelector('.about-section:nth-child(3) .column-items');
+        const internContainer = document.querySelector('.about-exp-row .about-section:nth-child(2) .column-items');
         if (internContainer) {
             internContainer.innerHTML = about.internships.map(intern => `
                 <div class="item">
@@ -525,6 +606,28 @@ function applyAboutData(about) {
                     <p class="position">${intern.position}</p>
                     <p class="time">${intern.time}</p>
                 </div>`).join('');
+        }
+    }
+}
+
+function applyContactData(contact) {
+    // 邮箱
+    if (contact.email) {
+        const emailLink = document.querySelector('.contact-info-items .info-item:nth-child(1) a');
+        if (emailLink) {
+            emailLink.href = `mailto:${contact.email}`;
+            emailLink.textContent = contact.email;
+        }
+    }
+    
+    // 电话
+    if (contact.phone) {
+        const phoneLink = document.querySelector('.contact-info-items .info-item:nth-child(2) a');
+        if (phoneLink) {
+            // 移除非数字字符用于 tel: 链接
+            const phoneDigits = contact.phone.replace(/[^\d+]/g, '');
+            phoneLink.href = `tel:${phoneDigits}`;
+            phoneLink.textContent = contact.phone;
         }
     }
 }
@@ -581,25 +684,42 @@ async function loadWorkById(workId) {
 
 function displayWorkDetail(work) {
     const titleEl = document.querySelector('.detail-title');
-    const metaEl = document.querySelector('.detail-meta');
     const contentEl = document.querySelector('.detail-content');
     const imagesEl = document.querySelector('.detail-images');
 
     if (titleEl) titleEl.textContent = work.title;
 
-    if (metaEl) {
+    // 更新页面标题
+    document.title = work.title + ' · WANG JUNYI';
+
+    // 新结构：独立 ID 元素
+    const catLabelEl = document.getElementById('detail-category-label');
+    const metaCatEl  = document.getElementById('meta-category');
+    const metaTypeEl = document.getElementById('meta-type');
+    const metaDateEl = document.getElementById('meta-date');
+
+    const categoryName = getCategoryName(work.category);
+
+    if (catLabelEl) catLabelEl.textContent = categoryName;
+    if (metaCatEl)  metaCatEl.textContent  = categoryName;
+    if (metaTypeEl) metaTypeEl.textContent  = work.details.type  || '—';
+    if (metaDateEl) metaDateEl.textContent  = work.details.date  || '—';
+
+    // 兼容旧结构（整体 metaEl）
+    const metaEl = document.querySelector('.detail-meta');
+    if (metaEl && !metaCatEl) {
         metaEl.innerHTML = `
             <div class="detail-meta-item">
                 <span class="detail-meta-label">分类</span>
-                <span class="detail-meta-value">${getCategoryName(work.category)}</span>
+                <span class="detail-meta-value">${categoryName}</span>
             </div>
             <div class="detail-meta-item">
                 <span class="detail-meta-label">类型</span>
-                <span class="detail-meta-value">${work.details.type}</span>
+                <span class="detail-meta-value">${work.details.type || '—'}</span>
             </div>
             <div class="detail-meta-item">
                 <span class="detail-meta-label">创作时间</span>
-                <span class="detail-meta-value">${work.details.date}</span>
+                <span class="detail-meta-value">${work.details.date || '—'}</span>
             </div>
         `;
     }

@@ -68,6 +68,21 @@ function setImagePreview(previewId, placeholderId, src) {
     }
 }
 
+// 解析本地图片缩略图路径（与前台 script.js 保持一致）
+function resolveLocalThumbnail(thumbnail, category, id, details) {
+    if (!thumbnail) return '';
+    // 已是完整 http URL，直接用（未来上传到 Storage 后自动生效）
+    if (thumbnail.startsWith('http')) return thumbnail;
+    const prefix = 'images/works/';
+    if (!thumbnail.startsWith(prefix)) return thumbnail;
+    const rest = thumbnail.slice(prefix.length);
+    // 路径已包含 category/id 两级，说明已经是正确格式
+    if (rest.split('/').length >= 3) return thumbnail;
+    // 只有纯文件名，补全为 images/works/category/id/文件名
+    const filename = rest.split('/').pop();
+    return `${prefix}${category}/${id}/${filename}`;
+}
+
 // ==========================================
 // 富文本编辑器（Quill）
 // ==========================================
@@ -107,15 +122,15 @@ async function loadAllData() {
         if (remote) {
             siteData = remote;
         } else {
-            // Supabase 中还没有数据，从 sitedata.json 加载并写入
+            // Supabase 中还没有数据，从 sitedata.json 加载并写入 Supabase
             const resp = await fetch('data/sitedata.json?' + Date.now());
             siteData = await resp.json();
-            // 静默写入 Supabase（不阻塞，失败不影响展示）
-            sbDB.upsertSiteData(siteData).catch(() => {});
+            // 同步写入 Supabase
+            await sbDB.upsertSiteData(siteData);
         }
     } catch (e) {
         console.error('[后台] 加载 site_data 失败:', e);
-        siteData = { hero: {}, about: { skills: [], education: [], internships: [] } };
+        siteData = { hero: { stats: [] }, about: { skills: [], education: [], internships: [] }, contact: {} };
     }
 
     // 加载作品数据
@@ -145,11 +160,24 @@ async function loadAllData() {
                 return { ...work, details };
             });
             // 批量写入 Supabase
-            sbDB.upsertWorks(worksData).catch(e => console.error('[后台] 批量导入作品失败:', e));
+            await sbDB.upsertWorks(worksData).catch(e => console.error('[后台] 批量导入作品失败:', e));
         }
     } catch (e) {
         console.error('[后台] 加载 works 失败:', e);
-        worksData = [];
+        // 尝试从本地 JSON 降级
+        try {
+            const resp = await fetch('data/works.json?' + Date.now());
+            const originalWorks = await resp.json();
+            worksData = originalWorks.map(work => {
+                const details = { ...work.details };
+                if (!details.content_html) {
+                    details.content_html = buildHtmlFromLegacy(details);
+                }
+                return { ...work, details };
+            });
+        } catch {
+            worksData = [];
+        }
     }
 }
 
@@ -260,8 +288,16 @@ function initHeroPanel() {
     document.getElementById('hero-description').value = h.description || '';
     document.getElementById('hero-btn-primary').value = h.btnPrimary || '';
     document.getElementById('hero-btn-secondary').value = h.btnSecondary || '';
-    document.getElementById('hero-photo-url').value = h.photo || '';
     if (h.photo) setImagePreview('hero-photo-preview', 'hero-photo-placeholder', h.photo);
+
+    // 统计数据
+    const stats = h.stats || [];
+    if (stats.length >= 1) {
+        document.getElementById('hero-stat-works').value = stats[0].num || '';
+    }
+    if (stats.length >= 2) {
+        document.getElementById('hero-stat-internships').value = stats[1].num || '';
+    }
 
     // 图片上传
     document.getElementById('hero-photo-file').addEventListener('change', async e => {
@@ -270,18 +306,15 @@ function initHeroPanel() {
         // 先用 ObjectURL 做即时预览
         const previewUrl = fileToObjectURL(file);
         setImagePreview('hero-photo-preview', 'hero-photo-placeholder', previewUrl);
-        document.getElementById('hero-photo-url').value = '上传中...';
         try {
             const relPath = await uploadImageToServer(file, 'images/avatars');
             siteData.hero.photo = relPath;
-            document.getElementById('hero-photo-url').value = relPath;
             setImagePreview('hero-photo-preview', 'hero-photo-placeholder', relPath);
             showToast('✅ 照片已保存到 ' + relPath);
         } catch (err) {
             console.warn('[上传] 服务器不支持上传，使用 base64 降级:', err.message);
             const b64 = await fileToBase64(file);
             siteData.hero.photo = b64;
-            document.getElementById('hero-photo-url').value = '（已上传，仅本地预览）';
         }
     });
 
@@ -290,14 +323,19 @@ function initHeroPanel() {
         document.getElementById('hero-photo-file').click();
     });
 
-    // URL 应用
-    document.getElementById('hero-photo-url-btn').addEventListener('click', () => {
-        const url = document.getElementById('hero-photo-url').value.trim();
-        if (url) setImagePreview('hero-photo-preview', 'hero-photo-placeholder', url);
-    });
-
     // 保存
     document.getElementById('save-hero').addEventListener('click', () => {
+        const worksNum = document.getElementById('hero-stat-works').value.trim();
+        const internshipsNum = document.getElementById('hero-stat-internships').value.trim();
+        
+        const stats = [];
+        if (worksNum) {
+            stats.push({ num: worksNum, label: '作品案例' });
+        }
+        if (internshipsNum) {
+            stats.push({ num: internshipsNum, label: '实习经历' });
+        }
+        
         siteData.hero = {
             ...siteData.hero,
             title: document.getElementById('hero-title').value.trim(),
@@ -305,13 +343,8 @@ function initHeroPanel() {
             description: document.getElementById('hero-description').value.trim(),
             btnPrimary: document.getElementById('hero-btn-primary').value.trim(),
             btnSecondary: document.getElementById('hero-btn-secondary').value.trim(),
+            stats: stats,
         };
-        // photo 已在上传/url应用时更新，这里只更新文字url
-        const urlVal = document.getElementById('hero-photo-url').value.trim();
-        const blockedPhotoVals = ['上传中...', '（已上传，仅本地预览）', '（已上传本地图片）'];
-        if (urlVal && !blockedPhotoVals.includes(urlVal)) {
-            siteData.hero.photo = urlVal;
-        }
         saveSiteData();
         showToast('✅ Hero 首屏已保存');
     });
@@ -326,7 +359,7 @@ function initAboutPanel() {
 
     // 照片
     if (a.photo) setImagePreview('about-photo-preview', 'about-photo-placeholder', a.photo);
-    document.getElementById('about-photo-url').value = a.photo || '';
+    document.getElementById('about-quote').value = a.quote || '';
     document.getElementById('about-intro').value = a.intro || '';
 
     document.getElementById('about-photo-file').addEventListener('change', async e => {
@@ -334,18 +367,15 @@ function initAboutPanel() {
         if (!file) return;
         const previewUrl = fileToObjectURL(file);
         setImagePreview('about-photo-preview', 'about-photo-placeholder', previewUrl);
-        document.getElementById('about-photo-url').value = '上传中...';
         try {
             const relPath = await uploadImageToServer(file, 'images/avatars');
             siteData.about.photo = relPath;
-            document.getElementById('about-photo-url').value = relPath;
             setImagePreview('about-photo-preview', 'about-photo-placeholder', relPath);
             showToast('✅ 照片已保存到 ' + relPath);
         } catch (err) {
             console.warn('[上传] 服务器不支持上传，使用 base64 降级:', err.message);
             const b64 = await fileToBase64(file);
             siteData.about.photo = b64;
-            document.getElementById('about-photo-url').value = '（已上传，仅本地预览）';
         }
     });
 
@@ -353,15 +383,9 @@ function initAboutPanel() {
         document.getElementById('about-photo-file').click();
     });
 
-    document.getElementById('about-photo-url-btn').addEventListener('click', () => {
-        const url = document.getElementById('about-photo-url').value.trim();
-        if (url) setImagePreview('about-photo-preview', 'about-photo-placeholder', url);
-    });
 
     document.getElementById('save-about-intro').addEventListener('click', () => {
-        const urlVal = document.getElementById('about-photo-url').value.trim();
-        const blockedPhotoVals = ['上传中...', '（已上传，仅本地预览）', '（已上传本地图片）'];
-        if (urlVal && !blockedPhotoVals.includes(urlVal)) siteData.about.photo = urlVal;
+        siteData.about.quote = document.getElementById('about-quote').value.trim();
         siteData.about.intro = document.getElementById('about-intro').value.trim();
         saveSiteData();
         showToast('✅ 照片 & 简介已保存');
@@ -405,6 +429,32 @@ function initAboutPanel() {
         siteData.about.internships = collectInternships();
         saveSiteData();
         showToast('✅ 实习经历已保存');
+    });
+}
+
+// ==========================================
+// 联系方式面板
+// ==========================================
+
+function initContactPanel() {
+    const c = siteData.contact || {};
+    document.getElementById('contact-email').value = c.email || '';
+    document.getElementById('contact-phone').value = c.phone || '';
+    
+    document.getElementById('save-contact').addEventListener('click', () => {
+        if (!siteData.contact) {
+            siteData.contact = {};
+        }
+        siteData.contact.email = document.getElementById('contact-email').value.trim();
+        siteData.contact.phone = document.getElementById('contact-phone').value.trim();
+        
+        if (!siteData.contact.email || !siteData.contact.phone) {
+            showToast('邮箱和电话不能为空', 'error');
+            return;
+        }
+        
+        saveSiteData();
+        showToast('✅ 联系方式已保存');
     });
 }
 
@@ -577,7 +627,9 @@ function createWorkListItem(work) {
     item.className = 'work-item';
     item.dataset.id = work.id;
 
-    const thumbSrc = work.thumbnail || '';
+    // 使用和前台相同的图片路径解析逻辑
+    const resolvedThumb = resolveLocalThumbnail(work.thumbnail || '', work.category, work.id, work.details);
+    const thumbSrc = resolvedThumb;
     const thumbHtml = thumbSrc
         ? `<img src="${thumbSrc}" alt="${work.title}" onerror="this.parentNode.innerHTML='<div class=\\'work-item-thumb-placeholder\\'>无图</div>'">`
         : `<div class="work-item-thumb-placeholder">无封面</div>`;
@@ -644,11 +696,11 @@ function openWorkModal(work, category) {
     document.getElementById('work-description').value = work?.description || '';
     document.getElementById('work-type').value = work?.details?.type || '';
     document.getElementById('work-date').value = work?.details?.date || '';
-    document.getElementById('work-thumbnail-url').value = work?.thumbnail || '';
 
-    // 封面预览
+    // 封面预览（使用相同的路径解析逻辑）
     if (work?.thumbnail) {
-        setImagePreview('work-thumbnail-preview', 'work-thumbnail-placeholder', work.thumbnail);
+        const resolvedThumb = resolveLocalThumbnail(work.thumbnail, work.category, work.id, work.details);
+        setImagePreview('work-thumbnail-preview', 'work-thumbnail-placeholder', resolvedThumb);
     } else {
         setImagePreview('work-thumbnail-preview', 'work-thumbnail-placeholder', '');
     }
@@ -693,17 +745,15 @@ function initModalImageUpload() {
         // 即时本地预览
         const previewUrl = fileToObjectURL(file);
         setImagePreview('work-thumbnail-preview', 'work-thumbnail-placeholder', previewUrl);
-        document.getElementById('work-thumbnail-url').value = '上传中...';
         try {
             const remoteUrl = await uploadImageToServer(file, getWorkImageDir());
-            document.getElementById('work-thumbnail-url').value = remoteUrl;
             setImagePreview('work-thumbnail-preview', 'work-thumbnail-placeholder', remoteUrl);
             if (!currentEditWork) currentEditWork = {};
             currentEditWork._uploadedThumb = remoteUrl;
+            currentEditWork.thumbnail = remoteUrl;
             showToast('✅ 封面上传成功');
         } catch (err) {
             console.error('[上传] 封面上传失败:', err);
-            document.getElementById('work-thumbnail-url').value = '';
             showToast('封面上传失败：' + err.message, 'error');
         }
         e.target.value = '';
@@ -715,14 +765,6 @@ function initModalImageUpload() {
 
     document.getElementById('work-thumbnail-upload-btn')?.addEventListener('click', () => {
         document.getElementById('work-thumbnail-file').click();
-    });
-
-    document.getElementById('work-thumbnail-url-btn').addEventListener('click', () => {
-        const url = document.getElementById('work-thumbnail-url').value.trim();
-        const blocked = ['（已上传本地图片）', '上传中...', '（已上传，仅本地预览）'];
-        if (url && !blocked.includes(url)) {
-            setImagePreview('work-thumbnail-preview', 'work-thumbnail-placeholder', url);
-        }
     });
 }
 
@@ -777,19 +819,6 @@ function initDetailImageUpload() {
         }
         e.target.value = '';
     });
-    document.getElementById('add-detail-image-url-btn').addEventListener('click', () => {
-        const url = document.getElementById('work-detail-image-url').value.trim();
-        if (!url) return;
-        detailImages.push(url);
-        renderDetailImagesList(detailImages);
-        document.getElementById('work-detail-image-url').value = '';
-    });
-    document.getElementById('work-detail-image-url').addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            document.getElementById('add-detail-image-url-btn').click();
-        }
-    });
 }
 
 // --- 链接列表 ---
@@ -830,14 +859,8 @@ async function saveWork() {
     const title = document.getElementById('work-title').value.trim();
     if (!title) { showToast('请输入作品标题', 'error'); return; }
 
-    // 获取封面：优先用 input 里的值（上传成功后写入相对路径，手动输入同理）
-    let thumbnail = document.getElementById('work-thumbnail-url').value.trim();
-    // 占位词：上传进行中或降级后的提示文字，不应被当作路径存储
-    const blockedThumbVals = ['上传中...', '（已上传，仅本地预览）', '（已上传本地图片）'];
-    if (blockedThumbVals.includes(thumbnail)) {
-        // 降级场景：取 base64 暂存值，或保留原封面
-        thumbnail = currentEditWork?._tempThumb || currentEditWork?.thumbnail || '';
-    }
+    // 获取封面：优先用编辑过程中设置的值
+    let thumbnail = currentEditWork?.thumbnail || currentEditWork?._uploadedThumb || '';
     // 过滤掉 __uploading__ 占位（配图上传中途保存的情况）
     const cleanImages = detailImages.filter(img => img !== '__uploading__');
 
@@ -997,6 +1020,7 @@ async function initAdmin() {
     initNavigation();
     initHeroPanel();
     initAboutPanel();
+    initContactPanel();
     initWorksPanels();
     initModalImageUpload();
     initDetailImageUpload();

@@ -60,6 +60,10 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     个人介绍
                 </a>
+                <a href="#" class="nav-item" data-panel="contact">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    联系方式
+                </a>
             </div>
             <div class="nav-group">
                 <div class="nav-group-label">作品管理</div>
@@ -128,6 +132,16 @@
                             <input type="text" id="hero-btn-secondary" class="form-input" placeholder="关于我">
                         </div>
                     </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">作品案例数量</label>
+                            <input type="text" id="hero-stat-works" class="form-input" placeholder="15">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">实习经历数量</label>
+                            <input type="text" id="hero-stat-internships" class="form-input" placeholder="3">
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label class="form-label">个人照片</label>
                         <div class="image-uploader" id="hero-photo-uploader">
@@ -145,11 +159,6 @@
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                     上传本地图片
                                 </button>
-                                <span class="or-divider">或</span>
-                                <div class="url-input-wrap">
-                                    <input type="text" id="hero-photo-url" class="form-input" placeholder="输入图片路径或URL，如：images/xxx.jpg">
-                                    <button class="btn-ghost" id="hero-photo-url-btn">应用</button>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -186,16 +195,15 @@
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                     上传本地图片
                                 </button>
-                                <span class="or-divider">或</span>
-                                <div class="url-input-wrap">
-                                    <input type="text" id="about-photo-url" class="form-input" placeholder="输入图片路径或URL">
-                                    <button class="btn-ghost" id="about-photo-url-btn">应用</button>
-                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">个人简介文案</label>
+                        <label class="form-label">引言文字 <span class="label-hint">（大字展示，支持换行）</span></label>
+                        <textarea id="about-quote" class="form-textarea" rows="3" placeholder="输入引言，如：用文字赋予文化以温度，&#10;让语言跨越边界与时间。"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">个人简介文案 <span class="label-hint">（小字正文）</span></label>
                         <textarea id="about-intro" class="form-textarea" rows="4" placeholder="输入个人简介..."></textarea>
                     </div>
                     <div class="form-actions">
@@ -242,6 +250,30 @@
                     </button>
                     <div class="form-actions">
                         <button class="btn-primary" id="save-about-internships">保存实习经历</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 联系方式面板 ===== -->
+        <div class="panel" id="panel-contact">
+            <div class="panel-header">
+                <h2 class="panel-title">联系方式</h2>
+                <p class="panel-desc">修改邮箱和电话号码</p>
+            </div>
+            <div class="panel-body">
+                <div class="form-card">
+                    <h3 class="form-card-title">联系信息</h3>
+                    <div class="form-group">
+                        <label class="form-label">邮箱 <span class="required">*</span></label>
+                        <input type="email" id="contact-email" class="form-input" placeholder="输入邮箱地址">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">电话 <span class="required">*</span></label>
+                        <input type="text" id="contact-phone" class="form-input" placeholder="输入电话号码，如：+86 150 8172 5260">
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-primary" id="save-contact">保存联系方式</button>
                     </div>
                 </div>
             </div>
@@ -366,11 +398,6 @@
                         <div class="image-uploader-actions">
                             <input type="file" id="work-thumbnail-file" accept="image/*" style="display:none">
                             <button class="btn-secondary small" id="work-thumbnail-upload-btn" type="button">上传图片</button>
-                            <span class="or-divider">或</span>
-                            <div class="url-input-wrap">
-                                <input type="text" id="work-thumbnail-url" class="form-input" placeholder="images/works/...">
-                                <button class="btn-ghost small" id="work-thumbnail-url-btn">应用</button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -405,11 +432,6 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         上传配图
                     </button>
-                    <span class="or-divider">或</span>
-                    <div class="url-input-wrap">
-                        <input type="text" id="work-detail-image-url" class="form-input" placeholder="输入图片路径">
-                        <button class="btn-ghost" id="add-detail-image-url-btn">添加</button>
-                    </div>
                 </div>
             </div>
 
