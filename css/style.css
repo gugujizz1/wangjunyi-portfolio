@@ -616,6 +616,12 @@ padding: 4px 0;
     font-family: var(--font-body);
 }
 
+/* Quill 字号 class 在前台的对应渲染值（与 Quill 编辑器保持一致） */
+.hero-heading .ql-size-small  { font-size: clamp(14px, 2vw, 22px); }
+.hero-heading .ql-size-large  { font-size: clamp(28px, 3.5vw, 52px); }
+.hero-heading .ql-size-huge   { font-size: clamp(52px, 7vw, 96px);  }
+/* 颜色/粗体/斜体均为内联 style 或标准标签，直接生效 */
+
 /* 首屏富文本标题区域 */
 .hero-heading {
     margin-bottom: 28px;
