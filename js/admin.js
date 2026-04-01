@@ -299,8 +299,29 @@ function updateBadges() {
 
 function initHeroPanel() {
     const h = siteData.hero || {};
-    document.getElementById('hero-title').value = h.title || '';
-    document.getElementById('hero-subtitle').value = h.subtitle || '';
+
+    // 初始化首屏标题富文本编辑器
+    const heroHeadingQuill = new Quill('#hero-heading-editor', {
+        theme: 'snow',
+        placeholder: '你好，我是\n王俊毅！✨',
+        modules: {
+            toolbar: [
+                [{ 'size': ['small', false, 'large', 'huge'] }],
+                ['bold', 'italic', 'underline'],
+                [{ 'color': [] }],
+                ['clean']
+            ]
+        }
+    });
+    // 回填：优先用 heading_html，否则兼容旧字段拼接
+    if (h.heading_html) {
+        heroHeadingQuill.root.innerHTML = h.heading_html;
+    } else if (h.title || h.subtitle) {
+        heroHeadingQuill.root.innerHTML = `<p>${h.title || ''}</p><p>${h.subtitle || ''}</p>`;
+    }
+    // 挂到 window 供保存时使用
+    window._heroHeadingQuill = heroHeadingQuill;
+
     document.getElementById('hero-description').value = h.description || '';
     document.getElementById('hero-btn-primary').value = h.btnPrimary || '';
     document.getElementById('hero-btn-secondary').value = h.btnSecondary || '';
@@ -367,8 +388,7 @@ function initHeroPanel() {
         
         siteData.hero = {
             ...siteData.hero,
-            title: document.getElementById('hero-title').value.trim(),
-            subtitle: document.getElementById('hero-subtitle').value.trim(),
+            heading_html: window._heroHeadingQuill ? window._heroHeadingQuill.root.innerHTML : (siteData.hero.heading_html || ''),
             description: document.getElementById('hero-description').value.trim(),
             btnPrimary: document.getElementById('hero-btn-primary').value.trim(),
             btnSecondary: document.getElementById('hero-btn-secondary').value.trim(),

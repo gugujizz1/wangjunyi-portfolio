@@ -665,15 +665,20 @@ async function loadSiteData() {
 }
 
 function applyHeroData(hero) {
-    const titleEl = document.querySelector('.hero-title');
-    const subtitleEl = document.querySelector('.hero-subtitle');
+    const headingEl = document.querySelector('.hero-heading');
     const descEl = document.querySelector('.hero-description');
     const photoEl = document.querySelector('.hero-image img');
     const btnPrimary = document.querySelector('.hero-buttons .btn.btn-primary');
     const btnSecondary = document.querySelector('.hero-buttons .btn.btn-secondary');
 
-    if (titleEl && hero.title) titleEl.textContent = hero.title;
-    if (subtitleEl && hero.subtitle) subtitleEl.textContent = hero.subtitle;
+    if (headingEl) {
+        if (hero.heading_html) {
+            headingEl.innerHTML = hero.heading_html;
+        } else if (hero.title || hero.subtitle) {
+            // 兼容旧数据格式
+            headingEl.innerHTML = `<p>${hero.title || ''}</p><p>${hero.subtitle || ''}</p>`;
+        }
+    }
     if (descEl && hero.description) descEl.textContent = hero.description;
     if (photoEl && hero.photo) photoEl.src = hero.photo;
     if (btnPrimary && hero.btnPrimary) btnPrimary.textContent = hero.btnPrimary;
