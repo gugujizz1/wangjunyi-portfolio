@@ -545,14 +545,21 @@ function applyHeroData(hero) {
     if (btnPrimary && hero.btnPrimary) btnPrimary.textContent = hero.btnPrimary;
     if (btnSecondary && hero.btnSecondary) btnSecondary.textContent = hero.btnSecondary;
     
-    // 统计数据
+    // 统计数据 - 保留硬编码的三语能力
     if (hero.stats && hero.stats.length > 0) {
         const statsContainer = document.querySelector('.hero-stats');
         if (statsContainer) {
-            statsContainer.innerHTML = hero.stats
+            // 确保至少有三语能力这一项
+            const stats = [...hero.stats];
+            // 如果缺少第三项（三语能力），添加硬编码的默认值
+            if (stats.length < 3) {
+                stats.push({ num: '中英法', label: '三语能力' });
+            }
+            
+            statsContainer.innerHTML = stats
                 .map(stat => `
                     <div class="hero-stat-item">
-                        <span class="hero-stat-num">${stat.num}<em>+</em></span>
+                        <span class="hero-stat-num">${stat.num}${stat.label !== '三语能力' ? '<em>+</em>' : ''}</span>
                         <span class="hero-stat-label">${stat.label}</span>
                     </div>
                 `)
