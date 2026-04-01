@@ -186,13 +186,13 @@ const sbStorage = {
         const token = sbCurrentToken();
         if (!token) throw new Error('请先登录后再上传图片');
 
-        // 清理文件名
+        // 清理文件名（替换为 UUID，避免中文/特殊字符）
         const cleanedFileName = sanitizeFileName(file.name);
         // savePath 格式：images/works/cultural/work-c-001/[清理后的文件名]
         const finalSavePath = `${savePath}/${cleanedFileName}`.replace(/\/\//g, '/');
         
-        // bucket 名和路径分别编码
-        const bucketEncoded = encodeURIComponent(STORAGE_BUCKET);
+        // bucket 名编码：使用 encodeURIComponent 并额外编码单引号（Supabase 路径解析要求）
+        const bucketEncoded = encodeURIComponent(STORAGE_BUCKET).replace(/'/g, '%27');
         // 对路径进行编码：每个路径段分别编码，但保留 / 分隔符
         const pathParts = finalSavePath.split('/');
         const encodedPathParts = pathParts.map(part => {
@@ -227,7 +227,7 @@ const sbStorage = {
 
     // 获取公开 URL（已上传的文件）
     getPublicUrl(path) {
-        const bucketEncoded = encodeURIComponent(STORAGE_BUCKET);
+        const bucketEncoded = encodeURIComponent(STORAGE_BUCKET).replace(/'/g, '%27');
         const filePathEncoded = path.split('/').map(encodeURIComponent).join('/');
         return `${SUPABASE_URL}/storage/v1/object/public/${bucketEncoded}/${filePathEncoded}`;
     }
