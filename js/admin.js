@@ -31,10 +31,9 @@ function genId(prefix = 'work') {
 }
 
 // 将文件上传到 Supabase Storage，返回公开访问 URL
-// savePath：存储路径，如 images/works/cultural/work-c-001/封面.png
+// savePath：存储目录路径，如 images/works/cultural/work-c-001/
 async function uploadImageToServer(file, savePath) {
-    const filePath = `${savePath}/${file.name}`.replace(/\/\//g, '/');
-    return await sbStorage.upload(file, filePath);
+return await sbStorage.upload(file, savePath);
 }
 
 // 将文件读取为 ObjectURL（仅用于本地预览，不持久化）
