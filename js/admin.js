@@ -119,12 +119,29 @@ async function loadAllData() {
     // 加载站点数据（hero + about）
     try {
         const remote = await sbDB.getSiteData();
+        const localResp = await fetch('data/sitedata.json?' + Date.now());
+        const localData = await localResp.json();
+        
         if (remote) {
             siteData = remote;
+            // 确保 hero.stats 至少包含本地 JSON 中的所有项目
+            if (siteData.hero && localData.hero) {
+                if (!siteData.hero.stats) {
+                    siteData.hero.stats = localData.hero.stats;
+                } else if (siteData.hero.stats.length < localData.hero.stats.length) {
+                    // 如果远程数据的 stats 项数少于本地，用本地的补齐
+                    const remoteStats = siteData.hero.stats;
+                    const localStats = localData.hero.stats;
+                    // 保留远程的前N项数据（已修改的），补充缺失的项
+                    for (let i = remoteStats.length; i < localStats.length; i++) {
+                        remoteStats.push(localStats[i]);
+                    }
+                    siteData.hero.stats = remoteStats;
+                }
+            }
         } else {
             // Supabase 中还没有数据，从 sitedata.json 加载并写入 Supabase
-            const resp = await fetch('data/sitedata.json?' + Date.now());
-            siteData = await resp.json();
+            siteData = localData;
             // 同步写入 Supabase
             await sbDB.upsertSiteData(siteData);
         }
