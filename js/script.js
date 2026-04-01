@@ -390,7 +390,141 @@ function initAnimations() {
         return;
     }
 
-    // 标题动画 - 确保元素始终保持可见
+    // ---- Hero 视差滚动 ----
+    const heroImg = document.querySelector('.hero-image-frame img');
+    const heroBgWord = document.querySelector('.hero-bg-word');
+    const heroContent = document.querySelector('.hero-content');
+
+    if (heroImg) {
+        gsap.to(heroImg, {
+            scrollTrigger: {
+                trigger: '.hero',
+                start: 'top top',
+                end: 'bottom top',
+                scrub: 1.2
+            },
+            y: 80,
+            scale: 1.08,
+            ease: 'none'
+        });
+    }
+
+    if (heroBgWord) {
+        gsap.to(heroBgWord, {
+            scrollTrigger: {
+                trigger: '.hero',
+                start: 'top top',
+                end: 'bottom top',
+                scrub: 2
+            },
+            y: -60,
+            x: 20,
+            opacity: 0,
+            ease: 'none'
+        });
+    }
+
+    if (heroContent) {
+        gsap.to(heroContent, {
+            scrollTrigger: {
+                trigger: '.hero',
+                start: 'top top',
+                end: 'bottom top',
+                scrub: 1
+            },
+            y: 50,
+            opacity: 0.6,
+            ease: 'none'
+        });
+    }
+
+    // ---- Hero 鼠标视差 ----
+    const heroSection = document.querySelector('.hero');
+    if (heroSection) {
+        heroSection.addEventListener('mousemove', (e) => {
+            const rect = heroSection.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const dx = (e.clientX - cx) / rect.width;   // -0.5 ~ 0.5
+            const dy = (e.clientY - cy) / rect.height;  // -0.5 ~ 0.5
+
+            // 图片微倾斜
+            const frame = document.querySelector('.hero-image-frame');
+            if (frame) {
+                gsap.to(frame, {
+                    duration: 1.2,
+                    rotateY: dx * 8,
+                    rotateX: -dy * 5,
+                    ease: 'power2.out'
+                });
+            }
+
+            // 背景光晕跟随
+            const before = document.querySelector('.hero');
+            if (before) {
+                gsap.to('.hero::before', {
+                    duration: 2,
+                    backgroundPosition: `${50 + dx * 10}% ${50 + dy * 10}%`,
+                    ease: 'power1.out'
+                });
+            }
+        });
+
+        heroSection.addEventListener('mouseleave', () => {
+            const frame = document.querySelector('.hero-image-frame');
+            if (frame) {
+                gsap.to(frame, {
+                    duration: 1.5,
+                    rotateY: 0,
+                    rotateX: 0,
+                    ease: 'elastic.out(1, 0.5)'
+                });
+            }
+        });
+    }
+
+    // ---- Hero 数字计数动画 ----
+    function animateCounter(el, target, isText = false) {
+        if (isText) return; // 文字类型跳过
+        let start = 0;
+        const duration = 1800;
+        const startTime = performance.now();
+        function update(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // ease out cubic
+            const current = Math.round(start + (target - start) * eased);
+            el.setAttribute('data-displayed', current);
+            // 只替换数字部分，保留 em 子元素
+            const em = el.querySelector('em');
+            el.childNodes.forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    node.textContent = current;
+                }
+            });
+            if (progress < 1) requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+    }
+
+    // 用 IntersectionObserver 触发数字动画
+    const statNums = document.querySelectorAll('.hero-stat-num');
+    const statObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !entry.target.dataset.counted) {
+                entry.target.dataset.counted = '1';
+                const text = entry.target.childNodes[0]?.textContent?.trim() || '';
+                const num = parseInt(text);
+                if (!isNaN(num) && text.length <= 3) {
+                    animateCounter(entry.target, num, false);
+                }
+                statObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+    statNums.forEach(el => statObserver.observe(el));
+
+    // ---- 标题动画 - 确保元素始终保持可见 ----
     gsap.utils.toArray('.section-title').forEach(element => {
         // 确保初始状态可见
         gsap.set(element, { opacity: 1 });
