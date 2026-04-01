@@ -844,7 +844,7 @@ padding: 4px 0;
     overflow: hidden;
     width: 100%;
     max-width: 420px;
-    transform: rotate(-2deg);
+    transform: rotate(0deg);
     transition: transform 0.8s var(--ease), box-shadow 0.8s var(--ease);
     transform-style: preserve-3d;
     will-change: transform;
@@ -856,7 +856,7 @@ padding: 4px 0;
 }
 
 .hero-image-frame:hover {
-    transform: rotate(0deg) scale(1.02);
+    transform: scale(1.02);
     box-shadow:
         0 36px 88px rgba(26,23,20,0.22),
         0 0 0 1px rgba(184,151,90,0.32),
