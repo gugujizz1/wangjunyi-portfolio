@@ -165,14 +165,27 @@ const sbDB = {
 function sanitizeFileName(filename) {
     // 提取扩展名
     const dotIndex = filename.lastIndexOf('.');
-    const ext = dotIndex > -1 ? filename.substring(dotIndex) : '';
+    const ext = dotIndex > -1 ? filename.substring(dotIndex).toLowerCase() : '';
     const nameWithoutExt = dotIndex > -1 ? filename.substring(0, dotIndex) : filename;
     
-    // 保留中文、英文、数字、下划线、连字符，其他字符替换为下划线
-    const safeName = nameWithoutExt
-        .replace(/[^\u4e00-\u9fa5a-zA-Z0-9_-]/g, '_')
-        .replace(/_+/g, '_')  // 将连续的下划线合并为一个
-        .replace(/^_+|_+$/g, '');  // 去掉首尾下划线
+    // 第一步：只保留基本安全字符（英文、数字、中文、下划线、连字符）
+    let safeName = nameWithoutExt.replace(/[^\u4e00-\u9fa5a-zA-Z0-9_-]/g, '_');
+    
+    // 第二步：合并连续下划线
+    safeName = safeName.replace(/_+/g, '_');
+    
+    // 第三步：去掉首尾下划线和连字符
+    safeName = safeName.replace(/^[_-]+|[_-]+$/g, '');
+    
+    // 第四步：限制长度（Supabase 对文件名长度有限制）
+    if (safeName.length > 100) {
+        safeName = safeName.substring(0, 100);
+    }
+    
+    // 如果清理后为空，使用时间戳
+    if (!safeName) {
+        safeName = 'file_' + Date.now();
+    }
     
     return safeName + ext;
 }
@@ -188,9 +201,15 @@ const sbStorage = {
         // savePath 格式：images/works/cultural/work-c-001/[清理后的文件名]
         const finalSavePath = `${savePath}/${cleanedFileName}`.replace(/\/\//g, '/');
         
-        // bucket 名和路径分别编码，用 / 连接
+        // bucket 名和路径分别编码
         const bucketEncoded = encodeURIComponent(STORAGE_BUCKET);
-        const filePathEncoded = finalSavePath.split('/').map(encodeURIComponent).join('/');
+        // 对路径进行编码：每个路径段分别编码，但保留 / 分隔符
+        const pathParts = finalSavePath.split('/');
+        const encodedPathParts = pathParts.map(part => {
+            // 对每个部分进行 UTF-8 编码
+            return encodeURIComponent(part);
+        });
+        const filePathEncoded = encodedPathParts.join('/');
         const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${bucketEncoded}/${filePathEncoded}`;
 
         const resp = await fetch(uploadUrl, {
